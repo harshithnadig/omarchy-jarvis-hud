@@ -1,0 +1,52 @@
+{
+  "schemaVersion": 1,
+  "id": "harshith.jarvis-hud",
+  "name": "JARVIS Tactical HUD",
+  "version": "1.0.0",
+  "author": "Harshith Nadig",
+  "license": "MIT",
+  "description": "Futuristic sci-fi tactical telemetry HUD: animated Arc Reactor core, real-time GPU/CPU matrix diagnostics, and one-click tactical power protocols.",
+  "kinds": [
+    "bar-widget"
+  ],
+  "entryPoints": {
+    "barWidget": "BarWidget.qml"
+  },
+  "barWidget": {
+    "displayName": "JARVIS Tactical HUD",
+    "description": "Sci-fi diagnostic HUD with holographic telemetry and tactical system protocols.",
+    "category": "System",
+    "aliases": [
+      "jarvis",
+      "cyberpunk",
+      "hud",
+      "telemetry",
+      "matrix"
+    ],
+    "allowMultiple": false,
+    "defaultSection": "right",
+    "defaults": {
+      "themeColor": "cyan",
+      "refreshRate": 2000
+    },
+    "schema": [
+      {
+        "key": "themeColor",
+        "type": "string",
+        "label": "HUD Neon Accent",
+        "defaultValue": "cyan",
+        "description": "Select HUD neon accent: cyan, amber, crimson, emerald."
+      },
+      {
+        "key": "refreshRate",
+        "type": "integer",
+        "label": "Telemetry Refresh Interval (ms)",
+        "min": 1000,
+        "max": 5000,
+        "step": 500,
+        "defaultValue": 2000,
+        "description": "How often to poll hardware telemetry."
+      }
+    ]
+  }
+}
