@@ -1,0 +1,251 @@
+#!/home/harshith/.local/share/whisrs-gpu-env/bin/python
+"""
+Jarvis Push-to-Talk Voice Assistant
+Triggered on-demand via hotkey (Super+Shift+H).
+Immune to background TV noise; only records when activated.
+Whisper Large-v3 GPU + Neural Edge-TTS + Antigravity CLI.
+"""
+import os
+import sys
+import time
+import wave
+import io
+import re
+import json
+import urllib.request
+import urllib.parse
+import subprocess
+import sounddevice as sd
+import numpy as np
+from faster_whisper.vad import get_vad_model
+import edge_tts
+import asyncio
+
+SAMPLE_RATE = 16000
+CHUNK_SIZE = 512
+
+def play_chime():
+    subprocess.Popen(["pw-play", "/usr/share/sounds/freedesktop/stereo/service-login.oga"], stderr=subprocess.DEVNULL)
+
+def notify(title, msg):
+    subprocess.run(["notify-send", "-a", "Jarvis", "-i", "dialog-information", title, msg], check=False)
+
+def speak(text):
+    if not text:
+        return
+    clean = re.sub(r"```[\s\S]*?```", " Code snippet. ", text)
+    clean = re.sub(r"`[^`]*`", "", clean)
+    clean = re.sub(r"\[([^\]]+)\]\([^)]+\)", r"\1", clean)
+    clean = re.sub(r"[#*_~>|]", " ", clean)
+    clean = re.sub(r"\s+", " ", clean).strip()
+    if not clean:
+        return
+
+    try:
+        cmd = ["mpv", "--no-config", "--no-video", "--no-audio-display", "--really-quiet", "--title=jarvis_audio", "-"]
+        proc = subprocess.Popen(cmd, stdin=subprocess.PIPE, stderr=subprocess.DEVNULL)
+        async def stream_audio():
+            communicate = edge_tts.Communicate(clean, "en-US-ChristopherNeural")
+            async for chunk in communicate.stream():
+                if chunk["type"] == "audio":
+                    proc.stdin.write(chunk["data"])
+                    proc.stdin.flush()
+        asyncio.run(stream_audio())
+        proc.stdin.close()
+        proc.wait()
+    except Exception as e:
+        print(f"TTS error: {e}", file=sys.stderr)
+
+def transcribe_audio(pcm_bytes):
+    out_buf = io.BytesIO()
+    with wave.open(out_buf, "wb") as wf:
+        wf.setnchannels(1)
+        wf.setsampwidth(2)
+        wf.setframerate(SAMPLE_RATE)
+        wf.writeframes(pcm_bytes)
+    wav_data = out_buf.getvalue()
+
+    boundary = "----WebKitFormBoundaryJarvisPTT88"
+    body = (
+        f"--{boundary}\r\n"
+        f'Content-Disposition: form-data; name="file"; filename="audio.wav"\r\n'
+        f"Content-Type: audio/wav\r\n\r\n"
+    ).encode("utf-8") + wav_data + f"\r\n--{boundary}--\r\n".encode("utf-8")
+
+    req = urllib.request.Request(
+        "http://127.0.0.1:8765/transcribe",
+        data=body,
+        headers={"Content-Type": f"multipart/form-data; boundary={boundary}"}
+    )
+    try:
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            data = json.loads(resp.read().decode())
+            return data.get("text", "").strip()
+    except Exception:
+        return ""
+
+def handle_quick_actions(query):
+    q = query.lower().strip()
+    q = re.sub(r"^(?:hey\s+|ok\s+|yo\s+|hello\s+)?ja[rn]?v[ie][scz][,:\s]*", "", q).strip()
+
+    if q in ["hey", "hello", "hi", "how are you", "who are you"]:
+        return "Hello Harshith! Jarvis online and ready. What can I do for you?"
+
+    if "date" in q or "today's date" in q or "what day is it" in q or q in ["today", "day"]:
+        return time.strftime("Today is %A, %B %d, %Y.")
+
+    if "what time is it" in q or "current time" in q or "what's the time" in q or q == "time":
+        return time.strftime("It is currently %I:%M %p.")
+
+    if "battery" in q or "power level" in q:
+        try:
+            with open("/sys/class/power_supply/BAT0/capacity") as f:
+                cap = f.read().strip()
+            with open("/sys/class/power_supply/BAT0/status") as f:
+                stat = f.read().strip()
+            return f"Battery is at {cap}% and currently {stat}."
+        except Exception:
+            pass
+
+    if "weather" in q:
+        city = "Bangalore"
+        m = re.search(r"weather (?:in|for|at)?\s*([a-zA-Z\s]+)", q)
+        if m and m.group(1).strip() and m.group(1).strip() not in ["today", "now", "outside", "like"]:
+            city = m.group(1).strip().replace(" today", "").replace(" now", "").strip()
+        try:
+            req = urllib.request.Request(f"https://wttr.in/{urllib.parse.quote(city)}?format=%C,+%t", headers={"User-Agent": "curl/8.0"})
+            with urllib.request.urlopen(req, timeout=3) as resp:
+                w_text = resp.read().decode().strip()
+                if w_text:
+                    return f"In {city.title()}, the weather is currently {w_text}."
+        except Exception:
+            pass
+
+    if "lock screen" in q or "lock the screen" in q or "lock my laptop" in q:
+        subprocess.Popen(["omarchy", "system", "lock"])
+        return "Locking your screen."
+
+    if "open browser" in q or "launch browser" in q or "open chrome" in q:
+        subprocess.Popen(["google-chrome-stable"])
+        return "Opening Google Chrome."
+
+    if "open terminal" in q or "launch terminal" in q:
+        subprocess.Popen(["foot"])
+        return "Opening terminal."
+
+    if "open code" in q or "open vs code" in q or "open vscode" in q:
+        subprocess.Popen(["code"])
+        return "Opening VS Code."
+
+    if "volume up" in q or "increase volume" in q:
+        subprocess.run(["wpctl", "set-volume", "@DEFAULT_AUDIO_SINK@", "5%+"])
+        return "Volume increased."
+
+    if "volume down" in q or "decrease volume" in q:
+        subprocess.run(["wpctl", "set-volume", "@DEFAULT_AUDIO_SINK@", "5%-"])
+        return "Volume decreased."
+
+    if "mute" in q:
+        subprocess.run(["wpctl", "set-mute", "@DEFAULT_AUDIO_SINK@", "toggle"])
+        return "Audio toggled."
+
+    return None
+
+def record_voice_command():
+    vad_model = get_vad_model()
+    audio_frames = []
+    speech_started = False
+    silence_count = 0
+    speech_count = 0
+    max_frames = int(12 * SAMPLE_RATE / CHUNK_SIZE) # 12s max
+
+    play_chime()
+    notify("Jarvis", "Listening...")
+
+    with sd.InputStream(samplerate=SAMPLE_RATE, channels=1, blocksize=CHUNK_SIZE, dtype='float32') as stream:
+        for _ in range(max_frames):
+            data, _ = stream.read(CHUNK_SIZE)
+            chunk = data[:, 0]
+            raw_pcm = (chunk * 32767).astype(np.int16)
+            prob = float(vad_model(chunk)[0])
+
+            if prob > 0.35:
+                speech_started = True
+                speech_count += 1
+                silence_count = 0
+                audio_frames.append(raw_pcm.tobytes())
+            else:
+                if speech_started:
+                    audio_frames.append(raw_pcm.tobytes())
+                    silence_count += 1
+                    # 0.55s silence ends recording
+                    if silence_count > 17 and speech_count > 6:
+                        break
+
+    return b"".join(audio_frames)
+
+def main():
+    # If already running, prevent overlapping instance
+    pid_file = "/tmp/jarvis_ptt.pid"
+    if os.path.exists(pid_file):
+        try:
+            with open(pid_file) as f:
+                old_pid = int(f.read().strip())
+            os.kill(old_pid, 0)
+            print("Jarvis PTT already active.")
+            sys.exit(0)
+        except Exception:
+            pass
+
+    with open(pid_file, "w") as f:
+        f.write(str(os.getpid()))
+
+    try:
+        pcm_data = record_voice_command()
+        if not pcm_data:
+            notify("Jarvis", "No speech detected.")
+            sys.exit(0)
+
+        notify("Jarvis", "Transcribing on GPU...")
+        text = transcribe_audio(pcm_data)
+        if not text:
+            notify("Jarvis", "Could not understand audio.")
+            sys.exit(0)
+
+        print(f"User: {text}")
+        notify("You Said", text)
+
+        # 1. Quick Fast Path (< 300ms)
+        quick_resp = handle_quick_actions(text)
+        if quick_resp:
+            print(f"Jarvis: {quick_resp}")
+            notify("Jarvis", quick_resp)
+            speak(quick_resp)
+            sys.exit(0)
+
+        # 2. Antigravity Agent Query
+        notify("Jarvis", "Thinking...")
+        agent_prompt = (
+            f"You are Jarvis, a voice AI assistant on Omarchy Linux. "
+            f"Execute the user request and give a concise spoken response (1-3 sentences max):\n\n{text}"
+        )
+        result = subprocess.run(
+            ["agy", "--dangerously-skip-permissions", "-p", agent_prompt],
+            capture_output=True,
+            text=True,
+            timeout=120
+        )
+        response = result.stdout.strip()
+        if not response:
+            response = "Task executed successfully."
+
+        print(f"Jarvis: {response}")
+        notify("Jarvis", response[:120] + "...")
+        speak(response)
+
+    finally:
+        if os.path.exists(pid_file):
+            os.remove(pid_file)
+
+if __name__ == "__main__":
+    main()
