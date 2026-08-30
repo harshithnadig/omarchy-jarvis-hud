@@ -1,5 +1,5 @@
 from typing import Dict, Optional, List, Any
-from .stt_engine import STTEngine, TranscriptionResult
+from .stt_engine import STTEngine, TranscriptionResult, EngineUnavailableError
 from .whisper_engine import WhisperEngine
 from .nemotron_engine import NemotronEngine
 
@@ -8,7 +8,7 @@ class EngineRouter:
     Multi-Engine Orchestrator:
     - turbo: Whisper Large-v3-Turbo (Fast, balanced multilingual)
     - large-v3: Whisper Large-v3 (Maximum multilingual & accent accuracy)
-    - nemotron: NVIDIA Nemotron Streaming 0.6B (Cache-aware live streaming)
+    - nemotron: NVIDIA Nemotron ASR (Experimental)
     """
     def __init__(self, default_engine: str = "turbo"):
         self.default_engine_key = default_engine
@@ -19,13 +19,23 @@ class EngineRouter:
         }
         self.active_engine_key = default_engine
 
-    def get_engine(self, engine_key: Optional[str] = None) -> STTEngine:
-        key = (engine_key or self.active_engine_key).lower().strip()
+    def get_engine(self, engine_key: Optional[str] = None, allow_fallback: bool = False) -> STTEngine:
+        if not engine_key:
+            key = self.active_engine_key
+        else:
+            key = engine_key.lower().strip()
+
         if key in ("whisper", "default", "auto"):
             key = self.active_engine_key
+
         if key not in self._engines:
-            print(f"⚠️ [EngineRouter] Unknown engine '{key}', falling back to '{self.default_engine_key}'", flush=True)
-            key = self.default_engine_key
+            if allow_fallback:
+                print(f"⚠️ [EngineRouter] Unknown engine '{key}', falling back to '{self.default_engine_key}'", flush=True)
+                key = self.default_engine_key
+            else:
+                raise EngineUnavailableError(
+                    f"Unknown engine '{key}'. Available engines: {list(self._engines.keys())}"
+                )
         return self._engines[key]
 
     def set_default_engine(self, engine_key: str):
@@ -34,7 +44,7 @@ class EngineRouter:
             self.active_engine_key = key
             print(f"🔀 [EngineRouter] Active engine switched to: '{key}'", flush=True)
         else:
-            raise ValueError(f"Unknown engine '{key}'. Available: {list(self._engines.keys())}")
+            raise EngineUnavailableError(f"Unknown engine '{key}'. Available: {list(self._engines.keys())}")
 
     def list_engines(self) -> List[Dict[str, Any]]:
         result = []
@@ -42,6 +52,7 @@ class EngineRouter:
             result.append({
                 "key": key,
                 "name": eng.name,
+                "is_available": eng.is_available(),
                 "is_loaded": eng.is_loaded,
                 "is_active": (key == self.active_engine_key)
             })

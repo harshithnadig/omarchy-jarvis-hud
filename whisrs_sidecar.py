@@ -4,6 +4,7 @@ import tempfile
 from fastapi import FastAPI, UploadFile, File, Form, Query, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from core.router import EngineRouter
+from core.stt_engine import STTError, EngineUnavailableError
 from core.polisher import TextPolisher
 
 app = FastAPI(title="JARVIS Multi-Engine Voice Sidecar")
@@ -16,12 +17,16 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Initialize Multi-Engine Router with Turbo as the high-speed default
+# Initialize Multi-Engine Router with Turbo as default
 router = EngineRouter(default_engine="turbo")
 
-# Preload default engine
-default_eng = router.get_engine()
-default_eng.load_model()
+# Preload default engine if available
+try:
+    default_eng = router.get_engine()
+    if default_eng.is_available():
+        default_eng.load_model()
+except Exception as e:
+    print(f"⚠️ [Sidecar Startup] Could not preload default engine: {e}", flush=True)
 
 @app.get("/health")
 def health():
@@ -44,7 +49,7 @@ def switch_engine(key: str = Query(..., description="Engine key: turbo, large-v3
         if not eng.is_loaded:
             eng.load_model()
         return {"status": "success", "active_engine": router.active_engine_key}
-    except ValueError as e:
+    except (ValueError, STTError) as e:
         raise HTTPException(status_code=400, detail=str(e))
 
 @app.post("/transcribe")
@@ -84,6 +89,12 @@ async def transcribe(
             "rtf": result.rtf,
             "engine": result.engine_name
         }
+    except EngineUnavailableError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except STTError as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Transcription failure: {e}")
     finally:
         if os.path.exists(tmp_path):
             os.remove(tmp_path)
@@ -91,3 +102,4 @@ async def transcribe(
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="127.0.0.1", port=8765)
+

@@ -1,46 +1,77 @@
 import re
-from typing import Optional
+from typing import Optional, Set
 
 class TextPolisher:
     """
-    Intelligent Text Polisher & Normalizer.
+    Deterministic Text Polisher & Normalizer.
     Phase 1: Safe deterministic sanitization (zero information loss).
-    Phase 2: Local small LLM cleanup (Qwen2.5/3.5-2B) for conversational repair.
+    Phase 5 / Phase 8: Advanced self-correction and optional local LLM post-processing.
     """
 
-    # Developer shorthand mappings (safe expansions)
+    # Developer shorthand mappings (safe expansions in dev mode)
     DEV_OPERATORS = {
         r"\b(?:fat arrow|fat error|fed arrow)\b": "=>",
         r"\b(?:skinny arrow|thin arrow)\b": "->",
         r"\b(?:triple equals|strict equals)\b": "===",
         r"\b(?:not equals|not equal to)\b": "!=",
         r"\b(?:pipe forward|pipeline operator)\b": "|>",
+        r"\b(?:optional chaining|optional chain)\b": "?.",
+        r"\b(?:nullish coalescing|double question mark)\b": "??",
+        r"\b(?:logical and|double ampersand)\b": "&&",
+        r"\b(?:logical or|double pipe)\b": "||",
     }
+
+    # Intentional repetitions that should NOT be collapsed as stutters
+    PRESERVED_REPETITIONS: Set[str] = {
+        "very", "really", "had", "that", "no", "so", "bye", "knock", "much", "far", "never", "now", "again"
+    }
+
+    # Common verbal hesitation filler tokens
+    FILLER_WORDS = r"\b(?:um|uh|erm|er|ah|ahh)\b"
+
+    @classmethod
+    def _deduplicate_stutters(cls, text: str) -> str:
+        """Collapse stuttered repeated words unless they are intentional intensifiers."""
+        def replace_dup(match):
+            word = match.group(1)
+            if word.lower() in cls.PRESERVED_REPETITIONS:
+                return match.group(0)  # Preserve e.g. "very very"
+            return word
+
+        # Match adjacent identical whole words (case-insensitive)
+        return re.sub(r"\b([a-zA-Z]+)\s+\1\b", replace_dup, text, flags=re.IGNORECASE)
 
     @classmethod
     def clean_deterministic(cls, text: str, dev_mode: bool = True) -> str:
-        if not text:
+        if not text or not text.strip():
             return ""
 
-        # 1. Clean duplicated words/stutters (e.g. "the the" -> "the")
-        cleaned = re.sub(r"\b([a-zA-Z]+)\s+\1\b", r"\1", text, flags=re.IGNORECASE)
+        cleaned = text.strip()
 
-        # 2. Clean verbal fillers
-        cleaned = re.sub(r"\b(um|uh|erm|er|ah|ahh)\b", "", cleaned, flags=re.IGNORECASE)
+        # 1. Clean verbal fillers
+        cleaned = re.sub(cls.FILLER_WORDS, "", cleaned, flags=re.IGNORECASE)
 
-        # 3. Collapse multiple spaces
-        cleaned = re.sub(r"\s+", " ", cleaned).strip()
+        # 2. Collapse stuttered duplicated words (preserving intentional repetitions)
+        cleaned = cls._deduplicate_stutters(cleaned)
+
+        # 3. Fix punctuation spacing and orphan punctuation
+        # Remove space before punctuation: "word ," -> "word,"
+        cleaned = re.sub(r"\s+([,.?!;:])", r"\1", cleaned)
+        # Collapse multiple adjacent commas or duplicate punctuation: ", ," -> ","
+        cleaned = re.sub(r"([,;:])\s*[,;:]+", r"\1", cleaned)
+        # Remove leading punctuation resulting from filler removal at start: ", Hello" -> "Hello"
+        cleaned = re.sub(r"^\s*[,;:]\s*", "", cleaned)
 
         # 4. Safe dev operators replacement if enabled
         if dev_mode:
             for pat, sym in cls.DEV_OPERATORS.items():
                 cleaned = re.sub(pat, sym, cleaned, flags=re.IGNORECASE)
 
-        # 5. Fix basic punctuation spacing
-        cleaned = re.sub(r"\s+([,.?!;:])", r"\1", cleaned)
+        # 5. Collapse multiple spaces
+        cleaned = re.sub(r"\s+", " ", cleaned).strip()
 
-        # 6. Capitalize first letter
-        if cleaned and cleaned[0].islower():
+        # 6. Ensure leading character capitalization if alphanumeric
+        if cleaned and cleaned[0].isalpha() and cleaned[0].islower():
             cleaned = cleaned[0].upper() + cleaned[1:]
 
         return cleaned
@@ -48,8 +79,7 @@ class TextPolisher:
     @classmethod
     def polish_with_llm(cls, raw_text: str, context: Optional[str] = None) -> str:
         """
-        Hook for local Qwen3.5-2B / Qwen2.5-3B post-processor.
-        Prompt rule: Preserve user meaning exactly. Fix speech artifacts only. Never add new facts.
+        Placeholder hook for optional local LLM post-processor (Phase 8).
+        Currently falls back to safe deterministic cleanup.
         """
-        # When Ollama or local LLM server is present, forward here.
         return cls.clean_deterministic(raw_text)

@@ -1,0 +1,274 @@
+{
+  "timestamp": "2026-08-31T01:09:56.932661",
+  "gpu_hardware": {
+    "available": true,
+    "name": "NVIDIA GeForce RTX 4060 Laptop GPU",
+    "vram_used_mb": 2234.0,
+    "vram_total_mb": 8188.0,
+    "vram_free_mb": 5602.0,
+    "gpu_util_pct": 0,
+    "temp_c": 50
+  },
+  "samples_count": 6,
+  "engines_tested": [
+    "turbo",
+    "large-v3"
+  ],
+  "engine_results": {
+    "turbo": {
+      "model_name": "whisper-large-v3-turbo",
+      "load_time_s": 4.372,
+      "vram_delta_mb": 2179.0,
+      "sample_results": [],
+      "errors": [
+        "Failed to transcribe clean_01_greeting on turbo: Whisper transcription failed: Library libcublas.so.12 is not found or cannot be loaded",
+        "Failed to transcribe dev_01_typescript on turbo: Whisper transcription failed: Library libcublas.so.12 is not found or cannot be loaded",
+        "Failed to transcribe dev_02_python on turbo: Whisper transcription failed: Library libcublas.so.12 is not found or cannot be loaded",
+        "Failed to transcribe indian_01_tech on turbo: Whisper transcription failed: Library libcublas.so.12 is not found or cannot be loaded",
+        "Failed to transcribe corr_01_backtrack on turbo: Whisper transcription failed: Library libcublas.so.12 is not found or cannot be loaded",
+        "Failed to transcribe dictation_01_long on turbo: Whisper transcription failed: Library libcublas.so.12 is not found or cannot be loaded"
+      ]
+    },
+    "large-v3": {
+      "model_name": "whisper-large-v3",
+      "load_time_s": 11.353,
+      "vram_delta_mb": 3328.0,
+      "sample_results": [
+        {
+          "sample_id": "clean_01_greeting",
+          "raw_text": "Hello, this is a clean test of the offline voice transcription system.",
+          "polished_text": "Hello, this is a clean test of the offline voice transcription system.",
+          "latency_ms": 10602.54,
+          "rtf": 0.0,
+          "audio_duration_s": 0.0,
+          "wer": 0.0,
+          "cer": 0.0,
+          "exact_match": true
+        },
+        {
+          "sample_id": "dev_01_typescript",
+          "raw_text": "const result equals await fetch, ap endpoint, headers, authorization, token.",
+          "polished_text": "Const result equals await fetch, ap endpoint, headers, authorization, token.",
+          "latency_ms": 13650.89,
+          "rtf": 0.0,
+          "audio_duration_s": 0.0,
+          "wer": 0.5714,
+          "cer": 0.1429,
+          "exact_match": false
+        },
+        {
+          "sample_id": "dev_02_python",
+          "raw_text": "def calculate underscore loss predictions targets return torch dot mean predictions targets 2",
+          "polished_text": "Def calculate underscore loss predictions targets return torch dot mean predictions targets 2",
+          "latency_ms": 16456.7,
+          "rtf": 0.0,
+          "audio_duration_s": 0.0,
+          "wer": 1.1429,
+          "cer": 0.2533,
+          "exact_match": false
+        },
+        {
+          "sample_id": "indian_01_tech",
+          "raw_text": "Please deploy the latest build on the Bangalore staging server and monitor the latency.",
+          "polished_text": "Please deploy the latest build on the Bangalore staging server and monitor the latency.",
+          "latency_ms": 13333.88,
+          "rtf": 0.0,
+          "audio_duration_s": 0.0,
+          "wer": 0.0,
+          "cer": 0.0,
+          "exact_match": true
+        },
+        {
+          "sample_id": "corr_01_backtrack",
+          "raw_text": "Schedule the deployment for Tuesday actually Wednesday morning.",
+          "polished_text": "Schedule the deployment for Tuesday actually Wednesday morning.",
+          "latency_ms": 10607.63,
+          "rtf": 0.0,
+          "audio_duration_s": 0.0,
+          "wer": 0.0,
+          "cer": 0.0,
+          "exact_match": true
+        },
+        {
+          "sample_id": "dictation_01_long",
+          "raw_text": "The local voice dictation pipeline uses Solero voice activity detection to segment incoming audio chunks and passes them to high-performance whisper models for low-latency transcription.",
+          "polished_text": "The local voice dictation pipeline uses Solero voice activity detection to segment incoming audio chunks and passes them to high-performance whisper models for low-latency transcription.",
+          "latency_ms": 15796.43,
+          "rtf": 0.0,
+          "audio_duration_s": 0.0,
+          "wer": 0.1852,
+          "cer": 0.0162,
+          "exact_match": false
+        }
+      ],
+      "errors": [],
+      "summary": {
+        "latency_stats_ms": {
+          "count": 6,
+          "min": 10602.54,
+          "max": 16456.7,
+          "mean": 13408.01,
+          "p50": 13492.38,
+          "p90": 16126.57,
+          "p95": 16291.63,
+          "p99": 16423.69
+        },
+        "rtf_stats": {
+          "count": 6,
+          "min": 0.0,
+          "max": 0.0,
+          "mean": 0.0,
+          "p50": 0.0,
+          "p90": 0.0,
+          "p95": 0.0,
+          "p99": 0.0
+        },
+        "mean_wer": 0.3166,
+        "mean_cer": 0.0687,
+        "exact_match_pct": 50.0,
+        "total_transcribed": 6,
+        "error_count": 0
+      }
+    }
+  },
+  "detailed_rows": [
+    {
+      "sample_id": "clean_01_greeting",
+      "category": "clean_english",
+      "audio_path": "/home/harshith/Work/omarchy-jarvis-hud/benchmarks/corpus/clean_01_greeting.mp3",
+      "reference_text": "Hello, this is a clean test of the offline voice transcription system.",
+      "duration_s": 0.0,
+      "engines": {
+        "turbo": {
+          "error": "Whisper transcription failed: Library libcublas.so.12 is not found or cannot be loaded"
+        },
+        "large-v3": {
+          "sample_id": "clean_01_greeting",
+          "raw_text": "Hello, this is a clean test of the offline voice transcription system.",
+          "polished_text": "Hello, this is a clean test of the offline voice transcription system.",
+          "latency_ms": 10602.54,
+          "rtf": 0.0,
+          "audio_duration_s": 0.0,
+          "wer": 0.0,
+          "cer": 0.0,
+          "exact_match": true
+        }
+      }
+    },
+    {
+      "sample_id": "dev_01_typescript",
+      "category": "developer_terms",
+      "audio_path": "/home/harshith/Work/omarchy-jarvis-hud/benchmarks/corpus/dev_01_typescript.mp3",
+      "reference_text": "const result = await fetch(apiEndpoint, { headers: { Authorization: token } });",
+      "duration_s": 0.0,
+      "engines": {
+        "turbo": {
+          "error": "Whisper transcription failed: Library libcublas.so.12 is not found or cannot be loaded"
+        },
+        "large-v3": {
+          "sample_id": "dev_01_typescript",
+          "raw_text": "const result equals await fetch, ap endpoint, headers, authorization, token.",
+          "polished_text": "Const result equals await fetch, ap endpoint, headers, authorization, token.",
+          "latency_ms": 13650.89,
+          "rtf": 0.0,
+          "audio_duration_s": 0.0,
+          "wer": 0.5714,
+          "cer": 0.1429,
+          "exact_match": false
+        }
+      }
+    },
+    {
+      "sample_id": "dev_02_python",
+      "category": "developer_terms",
+      "audio_path": "/home/harshith/Work/omarchy-jarvis-hud/benchmarks/corpus/dev_02_python.mp3",
+      "reference_text": "def calculate_loss(predictions, targets): return torch.mean((predictions - targets) ** 2)",
+      "duration_s": 0.0,
+      "engines": {
+        "turbo": {
+          "error": "Whisper transcription failed: Library libcublas.so.12 is not found or cannot be loaded"
+        },
+        "large-v3": {
+          "sample_id": "dev_02_python",
+          "raw_text": "def calculate underscore loss predictions targets return torch dot mean predictions targets 2",
+          "polished_text": "Def calculate underscore loss predictions targets return torch dot mean predictions targets 2",
+          "latency_ms": 16456.7,
+          "rtf": 0.0,
+          "audio_duration_s": 0.0,
+          "wer": 1.1429,
+          "cer": 0.2533,
+          "exact_match": false
+        }
+      }
+    },
+    {
+      "sample_id": "indian_01_tech",
+      "category": "indian_english",
+      "audio_path": "/home/harshith/Work/omarchy-jarvis-hud/benchmarks/corpus/indian_01_tech.mp3",
+      "reference_text": "Please deploy the latest build on the Bangalore staging server and monitor the latency.",
+      "duration_s": 0.0,
+      "engines": {
+        "turbo": {
+          "error": "Whisper transcription failed: Library libcublas.so.12 is not found or cannot be loaded"
+        },
+        "large-v3": {
+          "sample_id": "indian_01_tech",
+          "raw_text": "Please deploy the latest build on the Bangalore staging server and monitor the latency.",
+          "polished_text": "Please deploy the latest build on the Bangalore staging server and monitor the latency.",
+          "latency_ms": 13333.88,
+          "rtf": 0.0,
+          "audio_duration_s": 0.0,
+          "wer": 0.0,
+          "cer": 0.0,
+          "exact_match": true
+        }
+      }
+    },
+    {
+      "sample_id": "corr_01_backtrack",
+      "category": "self_corrections",
+      "audio_path": "/home/harshith/Work/omarchy-jarvis-hud/benchmarks/corpus/corr_01_backtrack.mp3",
+      "reference_text": "Schedule the deployment for Tuesday actually Wednesday morning.",
+      "duration_s": 0.0,
+      "engines": {
+        "turbo": {
+          "error": "Whisper transcription failed: Library libcublas.so.12 is not found or cannot be loaded"
+        },
+        "large-v3": {
+          "sample_id": "corr_01_backtrack",
+          "raw_text": "Schedule the deployment for Tuesday actually Wednesday morning.",
+          "polished_text": "Schedule the deployment for Tuesday actually Wednesday morning.",
+          "latency_ms": 10607.63,
+          "rtf": 0.0,
+          "audio_duration_s": 0.0,
+          "wer": 0.0,
+          "cer": 0.0,
+          "exact_match": true
+        }
+      }
+    },
+    {
+      "sample_id": "dictation_01_long",
+      "category": "long_dictation",
+      "audio_path": "/home/harshith/Work/omarchy-jarvis-hud/benchmarks/corpus/dictation_01_long.mp3",
+      "reference_text": "The local voice dictation pipeline uses Silero Voice Activity Detection to segment incoming audio chunks and passes them to high performance Whisper models for low latency transcription.",
+      "duration_s": 0.0,
+      "engines": {
+        "turbo": {
+          "error": "Whisper transcription failed: Library libcublas.so.12 is not found or cannot be loaded"
+        },
+        "large-v3": {
+          "sample_id": "dictation_01_long",
+          "raw_text": "The local voice dictation pipeline uses Solero voice activity detection to segment incoming audio chunks and passes them to high-performance whisper models for low-latency transcription.",
+          "polished_text": "The local voice dictation pipeline uses Solero voice activity detection to segment incoming audio chunks and passes them to high-performance whisper models for low-latency transcription.",
+          "latency_ms": 15796.43,
+          "rtf": 0.0,
+          "audio_duration_s": 0.0,
+          "wer": 0.1852,
+          "cer": 0.0162,
+          "exact_match": false
+        }
+      }
+    }
+  ]
+}

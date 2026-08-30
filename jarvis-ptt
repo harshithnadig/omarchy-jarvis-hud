@@ -1,4 +1,4 @@
-#!/home/harshith/.local/share/whisrs-gpu-env/bin/python
+#!/usr/bin/env python3
 """
 Jarvis Push-to-Talk Voice Assistant
 Triggered on-demand via hotkey (Super+Shift+H).

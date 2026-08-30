@@ -1,0 +1,56 @@
+[
+  {
+    "id": "clean_01_greeting",
+    "audio_path": "clean_01_greeting.mp3",
+    "reference_text": "Hello, this is a clean test of the offline voice transcription system.",
+    "category": "clean_english",
+    "language": "en",
+    "duration_s": 0.0,
+    "tags": []
+  },
+  {
+    "id": "dev_01_typescript",
+    "audio_path": "dev_01_typescript.mp3",
+    "reference_text": "const result = await fetch(apiEndpoint, { headers: { Authorization: token } });",
+    "category": "developer_terms",
+    "language": "en",
+    "duration_s": 0.0,
+    "tags": []
+  },
+  {
+    "id": "dev_02_python",
+    "audio_path": "dev_02_python.mp3",
+    "reference_text": "def calculate_loss(predictions, targets): return torch.mean((predictions - targets) ** 2)",
+    "category": "developer_terms",
+    "language": "en",
+    "duration_s": 0.0,
+    "tags": []
+  },
+  {
+    "id": "indian_01_tech",
+    "audio_path": "indian_01_tech.mp3",
+    "reference_text": "Please deploy the latest build on the Bangalore staging server and monitor the latency.",
+    "category": "indian_english",
+    "language": "en",
+    "duration_s": 0.0,
+    "tags": []
+  },
+  {
+    "id": "corr_01_backtrack",
+    "audio_path": "corr_01_backtrack.mp3",
+    "reference_text": "Schedule the deployment for Tuesday actually Wednesday morning.",
+    "category": "self_corrections",
+    "language": "en",
+    "duration_s": 0.0,
+    "tags": []
+  },
+  {
+    "id": "dictation_01_long",
+    "audio_path": "dictation_01_long.mp3",
+    "reference_text": "The local voice dictation pipeline uses Silero Voice Activity Detection to segment incoming audio chunks and passes them to high performance Whisper models for low latency transcription.",
+    "category": "long_dictation",
+    "language": "en",
+    "duration_s": 0.0,
+    "tags": []
+  }
+]

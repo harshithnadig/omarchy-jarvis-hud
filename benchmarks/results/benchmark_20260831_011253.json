@@ -1,0 +1,222 @@
+{
+  "timestamp": "2026-08-31T01:12:37.133992",
+  "gpu_hardware": {
+    "available": true,
+    "name": "NVIDIA GeForce RTX 4060 Laptop GPU",
+    "vram_used_mb": 2234.0,
+    "vram_total_mb": 8188.0,
+    "vram_free_mb": 5602.0,
+    "gpu_util_pct": 0,
+    "temp_c": 54
+  },
+  "samples_count": 6,
+  "engines_tested": [
+    "turbo",
+    "large-v3"
+  ],
+  "engine_results": {
+    "turbo": {
+      "model_name": "whisper-large-v3-turbo",
+      "load_time_s": 3.04,
+      "vram_delta_mb": 2179.0,
+      "sample_results": [
+        {
+          "sample_id": "clean_01_greeting",
+          "raw_text": "Hello, this is a clean test of the offline voice transcription system.",
+          "polished_text": "Hello, this is a clean test of the offline voice transcription system.",
+          "latency_ms": 848.45,
+          "rtf": 0.169,
+          "audio_duration_s": 5.02,
+          "wer": 0.0,
+          "cer": 0.0,
+          "exact_match": true
+        },
+        {
+          "sample_id": "dev_01_typescript",
+          "raw_text": "const result equals await fetch, AP endpoint, headers, authorization, token.",
+          "polished_text": "Const result equals await fetch, AP endpoint, headers, authorization, token.",
+          "latency_ms": 529.28,
+          "rtf": 0.081,
+          "audio_duration_s": 6.55,
+          "wer": 0.5714,
+          "cer": 0.1429,
+          "exact_match": false
+        },
+        {
+          "sample_id": "dev_02_python",
+          "raw_text": "DEF CALCULATE UNDERSCORE LOSS PREDICTIONS TARGETS RETURN TORCH.MEAN PREDICTIONS TARGETS 2",
+          "polished_text": "DEF CALCULATE UNDERSCORE LOSS PREDICTIONS TARGETS RETURN TORCH.MEAN PREDICTIONS TARGETS 2",
+          "latency_ms": 602.87,
+          "rtf": 0.075,
+          "audio_duration_s": 8.09,
+          "wer": 0.8571,
+          "cer": 0.1867,
+          "exact_match": false
+        },
+        {
+          "sample_id": "indian_01_tech",
+          "raw_text": "Please deploy the latest build on the Bangalore staging server and monitor the latency.",
+          "polished_text": "Please deploy the latest build on the Bangalore staging server and monitor the latency.",
+          "latency_ms": 554.76,
+          "rtf": 0.088,
+          "audio_duration_s": 6.34,
+          "wer": 0.0,
+          "cer": 0.0,
+          "exact_match": true
+        },
+        {
+          "sample_id": "corr_01_backtrack",
+          "raw_text": "Schedule the deployment for Tuesday, actually Wednesday morning.",
+          "polished_text": "Schedule the deployment for Tuesday, actually Wednesday morning.",
+          "latency_ms": 521.42,
+          "rtf": 0.127,
+          "audio_duration_s": 4.1,
+          "wer": 0.0,
+          "cer": 0.0,
+          "exact_match": true
+        },
+        {
+          "sample_id": "dictation_01_long",
+          "raw_text": "The local voice dictation pipeline uses Celero voice activity detection to segment incoming audio chunks and passes them to high-performance whisper models for low-latency transcription.",
+          "polished_text": "The local voice dictation pipeline uses Celero voice activity detection to segment incoming audio chunks and passes them to high-performance whisper models for low-latency transcription.",
+          "latency_ms": 598.88,
+          "rtf": 0.054,
+          "audio_duration_s": 11.04,
+          "wer": 0.1852,
+          "cer": 0.0216,
+          "exact_match": false
+        }
+      ],
+      "errors": [],
+      "summary": {
+        "latency_stats_ms": {
+          "count": 6,
+          "min": 521.42,
+          "max": 848.45,
+          "mean": 609.28,
+          "p50": 576.82,
+          "p90": 725.66,
+          "p95": 787.06,
+          "p99": 836.17
+        },
+        "rtf_stats": {
+          "count": 6,
+          "min": 0.05,
+          "max": 0.17,
+          "mean": 0.1,
+          "p50": 0.08,
+          "p90": 0.15,
+          "p95": 0.16,
+          "p99": 0.17
+        },
+        "mean_wer": 0.2689,
+        "mean_cer": 0.0585,
+        "exact_match_pct": 50.0,
+        "total_transcribed": 6,
+        "error_count": 0
+      }
+    },
+    "large-v3": {
+      "model_name": "whisper-large-v3",
+      "load_time_s": 4.211,
+      "vram_delta_mb": 3744.0,
+      "sample_results": [
+        {
+          "sample_id": "clean_01_greeting",
+          "raw_text": "Hello, this is a clean test of the offline voice transcription system.",
+          "polished_text": "Hello, this is a clean test of the offline voice transcription system.",
+          "latency_ms": 939.39,
+          "rtf": 0.187,
+          "audio_duration_s": 5.02,
+          "wer": 0.0,
+          "cer": 0.0,
+          "exact_match": true
+        },
+        {
+          "sample_id": "dev_01_typescript",
+          "raw_text": "Const result equals await fetch, AP endpoint, headers, authorization, token.",
+          "polished_text": "Const result equals await fetch, AP endpoint, headers, authorization, token.",
+          "latency_ms": 747.39,
+          "rtf": 0.114,
+          "audio_duration_s": 6.55,
+          "wer": 0.5714,
+          "cer": 0.1429,
+          "exact_match": false
+        },
+        {
+          "sample_id": "dev_02_python",
+          "raw_text": "def calculate underscore loss predictions targets return torch dot mean predictions targets 2",
+          "polished_text": "Def calculate underscore loss predictions targets return torch dot mean predictions targets 2",
+          "latency_ms": 742.23,
+          "rtf": 0.092,
+          "audio_duration_s": 8.09,
+          "wer": 1.1429,
+          "cer": 0.2533,
+          "exact_match": false
+        },
+        {
+          "sample_id": "indian_01_tech",
+          "raw_text": "Please deploy the latest build on the Bangalore staging server and monitor the latency.",
+          "polished_text": "Please deploy the latest build on the Bangalore staging server and monitor the latency.",
+          "latency_ms": 779.97,
+          "rtf": 0.123,
+          "audio_duration_s": 6.34,
+          "wer": 0.0,
+          "cer": 0.0,
+          "exact_match": true
+        },
+        {
+          "sample_id": "corr_01_backtrack",
+          "raw_text": "Schedule the deployment for Tuesday actually Wednesday morning.",
+          "polished_text": "Schedule the deployment for Tuesday actually Wednesday morning.",
+          "latency_ms": 701.3,
+          "rtf": 0.171,
+          "audio_duration_s": 4.1,
+          "wer": 0.0,
+          "cer": 0.0,
+          "exact_match": true
+        },
+        {
+          "sample_id": "dictation_01_long",
+          "raw_text": "The local voice dictation pipeline uses Solero voice activity detection to segment incoming audio chunks and passes them to high-performance whisper models for low-latency transcription.",
+          "polished_text": "The local voice dictation pipeline uses Solero voice activity detection to segment incoming audio chunks and passes them to high-performance whisper models for low-latency transcription.",
+          "latency_ms": 1004.3,
+          "rtf": 0.091,
+          "audio_duration_s": 11.04,
+          "wer": 0.1852,
+          "cer": 0.0162,
+          "exact_match": false
+        }
+      ],
+      "errors": [],
+      "summary": {
+        "latency_stats_ms": {
+          "count": 6,
+          "min": 701.3,
+          "max": 1004.3,
+          "mean": 819.1,
+          "p50": 763.68,
+          "p90": 971.85,
+          "p95": 988.07,
+          "p99": 1001.05
+        },
+        "rtf_stats": {
+          "count": 6,
+          "min": 0.09,
+          "max": 0.19,
+          "mean": 0.13,
+          "p50": 0.12,
+          "p90": 0.18,
+          "p95": 0.18,
+          "p99": 0.19
+        },
+        "mean_wer": 0.3166,
+        "mean_cer": 0.0687,
+        "exact_match_pct": 50.0,
+        "total_transcribed": 6,
+        "error_count": 0
+      }
+    }
+  },
+  "detailed_rows": []
+}

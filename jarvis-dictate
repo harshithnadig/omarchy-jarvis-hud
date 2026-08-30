@@ -1,0 +1,121 @@
+#!/usr/bin/env python3
+"""
+JARVIS Dictation Client (Mode A — Voice Keyboard)
+High-speed, offline-first voice typing directly at the cursor in any Linux application.
+- Pipeline: Mic Capture (Silero VAD) -> Sidecar GPU STT -> Deterministic Polish -> Direct Wayland Text Injection
+- Zero Assistant actions, Zero TTS, Zero cloud network calls.
+"""
+import os
+import sys
+import io
+import wave
+import json
+import urllib.request
+import sounddevice as sd
+import numpy as np
+from faster_whisper.vad import get_vad_model
+from core.polisher import TextPolisher
+from core.inject.router import InjectorRouter
+
+SAMPLE_RATE = 16000
+CHUNK_SIZE = 512  # 32ms per Silero frame
+SIDECAR_URL = os.environ.get("JARVIS_SIDECAR_URL", "http://127.0.0.1:8765/transcribe")
+
+def record_speech(max_seconds: float = 15.0, silence_timeout_s: float = 0.55) -> bytes:
+    """Record microphone audio until speech endpoint is detected via Silero VAD."""
+    vad_model = get_vad_model()
+    audio_frames = []
+    speech_started = False
+    silence_frames = 0
+    speech_frames = 0
+
+    silence_limit_frames = int(silence_timeout_s * SAMPLE_RATE / CHUNK_SIZE)
+    max_frames = int(max_seconds * SAMPLE_RATE / CHUNK_SIZE)
+
+    with sd.InputStream(samplerate=SAMPLE_RATE, channels=1, blocksize=CHUNK_SIZE, dtype='float32') as stream:
+        for _ in range(max_frames):
+            data, _ = stream.read(CHUNK_SIZE)
+            chunk = data[:, 0]
+            raw_pcm = (chunk * 32767).astype(np.int16)
+            prob = float(vad_model(chunk)[0])
+
+            if prob > 0.35:
+                speech_started = True
+                speech_frames += 1
+                silence_frames = 0
+                audio_frames.append(raw_pcm.tobytes())
+            else:
+                if speech_started:
+                    audio_frames.append(raw_pcm.tobytes())
+                    silence_frames += 1
+                    # Stop when silence exceeds threshold after valid speech
+                    if silence_frames > silence_limit_frames and speech_frames > 6:
+                        break
+
+    return b"".join(audio_frames)
+
+def transcribe_via_sidecar(pcm_bytes: bytes, engine: str = None, dev_mode: bool = True) -> str:
+    """Send recorded PCM to local GPU sidecar for fast offline transcription."""
+    out_buf = io.BytesIO()
+    with wave.open(out_buf, "wb") as wf:
+        wf.setnchannels(1)
+        wf.setsampwidth(2)
+        wf.setframerate(SAMPLE_RATE)
+        wf.writeframes(pcm_bytes)
+    wav_data = out_buf.getvalue()
+
+    boundary = "----WebKitFormBoundaryJarvisDictate77"
+    body = (
+        f"--{boundary}\r\n"
+        f'Content-Disposition: form-data; name="file"; filename="audio.wav"\r\n'
+        f"Content-Type: audio/wav\r\n\r\n"
+    ).encode("utf-8") + wav_data + f"\r\n--{boundary}--\r\n".encode("utf-8")
+
+    url = SIDECAR_URL
+    if engine:
+        url += f"?engine={engine}"
+
+    req = urllib.request.Request(
+        url,
+        data=body,
+        headers={"Content-Type": f"multipart/form-data; boundary={boundary}"}
+    )
+
+    try:
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            data = json.loads(resp.read().decode())
+            text = data.get("text", "")
+            return text
+    except Exception as e:
+        # Fallback to local in-process router if sidecar daemon is offline
+        print(f"ℹ️ [Dictate] Sidecar unreachable ({e}), using in-process transcription fallback...", file=sys.stderr)
+        from core.router import EngineRouter
+        router = EngineRouter()
+        import tempfile
+        with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as tmp:
+            tmp.write(wav_data)
+            tmp_path = tmp.name
+        try:
+            res = router.transcribe(tmp_path, engine_key=engine)
+            return TextPolisher.clean_deterministic(res.text, dev_mode=dev_mode)
+        finally:
+            if os.path.exists(tmp_path):
+                os.remove(tmp_path)
+
+def main():
+    # Record speech
+    pcm_data = record_speech()
+    if not pcm_data:
+        sys.exit(0)
+
+    # Transcribe on GPU
+    transcribed_text = transcribe_via_sidecar(pcm_data)
+    if not transcribed_text or not transcribed_text.strip():
+        sys.exit(0)
+
+    # Inject text into active cursor
+    injector = InjectorRouter()
+    injector.inject_text(transcribed_text)
+
+if __name__ == "__main__":
+    main()
