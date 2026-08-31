@@ -87,11 +87,10 @@ class EngineRouter:
         - Heavy Multilingual / Max Accuracy: 'large-v3' (when explicitly requested or long non-English dictation)
         """
         if require_max_accuracy:
-            return "large-v3" if self._engines["large-v3"].is_available() else self.default_engine_key
+            return "large-v3"
 
         if language and language.lower() not in ("en", "auto") and audio_duration_s > 15.0:
-            if self._engines["large-v3"].is_available():
-                return "large-v3"
+            return "large-v3"
 
         return self.default_engine_key
 
