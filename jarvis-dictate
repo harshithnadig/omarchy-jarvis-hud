@@ -1,9 +1,12 @@
 #!/usr/bin/env python3
 """
 JARVIS Dictation Client (Mode A — Voice Keyboard)
-High-speed, offline-first voice typing directly at the cursor in any Linux application.
-- Pipeline: Mic Capture (Silero VAD) -> Sidecar GPU STT -> Deterministic Polish -> Direct Wayland Text Injection
-- Zero Assistant actions, Zero TTS, Zero cloud network calls.
+Offline-first voice typing directly at the cursor across Linux applications.
+- Capture: AudioCapture with Silero VAD endpointing and pre-speech ring buffer
+- STT: Local GPU CTranslate2 FP16 (Whisper Large-v3-Turbo)
+- Polish: Context style profile + Snippets + Personal Dictionary + Backtracking + Dev Transforms
+- Injection: InjectorRouter (AT-SPI -> wtype -> ydotool -> xdotool -> safe clipboard)
+- Strict Boundary: Zero Assistant overhead, Zero TTS playback, Zero cloud calls.
 """
 import os
 import sys
@@ -11,60 +14,29 @@ import io
 import wave
 import json
 import urllib.request
-import sounddevice as sd
-import numpy as np
-from faster_whisper.vad import get_vad_model
+
+from core.audio.capture import AudioCapture
+from core.context.active_window import get_active_window
+from core.context.profiles import get_style_profile_for_window
+from core.context.privacy import PrivacyEngine
+from core.memory.dictionary import PersonalDictionary
+from core.memory.snippets import SnippetManager
 from core.polisher import TextPolisher
 from core.inject.router import InjectorRouter
 
-SAMPLE_RATE = 16000
-CHUNK_SIZE = 512  # 32ms per Silero frame
 SIDECAR_URL = os.environ.get("JARVIS_SIDECAR_URL", "http://127.0.0.1:8765/transcribe")
 
-def record_speech(max_seconds: float = 15.0, silence_timeout_s: float = 0.55) -> bytes:
-    """Record microphone audio until speech endpoint is detected via Silero VAD."""
-    vad_model = get_vad_model()
-    audio_frames = []
-    speech_started = False
-    silence_frames = 0
-    speech_frames = 0
-
-    silence_limit_frames = int(silence_timeout_s * SAMPLE_RATE / CHUNK_SIZE)
-    max_frames = int(max_seconds * SAMPLE_RATE / CHUNK_SIZE)
-
-    with sd.InputStream(samplerate=SAMPLE_RATE, channels=1, blocksize=CHUNK_SIZE, dtype='float32') as stream:
-        for _ in range(max_frames):
-            data, _ = stream.read(CHUNK_SIZE)
-            chunk = data[:, 0]
-            raw_pcm = (chunk * 32767).astype(np.int16)
-            prob = float(vad_model(chunk)[0])
-
-            if prob > 0.35:
-                speech_started = True
-                speech_frames += 1
-                silence_frames = 0
-                audio_frames.append(raw_pcm.tobytes())
-            else:
-                if speech_started:
-                    audio_frames.append(raw_pcm.tobytes())
-                    silence_frames += 1
-                    # Stop when silence exceeds threshold after valid speech
-                    if silence_frames > silence_limit_frames and speech_frames > 6:
-                        break
-
-    return b"".join(audio_frames)
-
-def transcribe_via_sidecar(pcm_bytes: bytes, engine: str = None, dev_mode: bool = True) -> str:
-    """Send recorded PCM to local GPU sidecar for fast offline transcription."""
+def transcribe_audio(pcm_bytes: bytes, engine: str = None) -> str:
+    """Send PCM audio to local GPU sidecar daemon or fallback to in-process router."""
     out_buf = io.BytesIO()
     with wave.open(out_buf, "wb") as wf:
         wf.setnchannels(1)
         wf.setsampwidth(2)
-        wf.setframerate(SAMPLE_RATE)
+        wf.setframerate(16000)
         wf.writeframes(pcm_bytes)
     wav_data = out_buf.getvalue()
 
-    boundary = "----WebKitFormBoundaryJarvisDictate77"
+    boundary = "----WebKitFormBoundaryJarvisDictate88"
     body = (
         f"--{boundary}\r\n"
         f'Content-Disposition: form-data; name="file"; filename="audio.wav"\r\n'
@@ -73,7 +45,9 @@ def transcribe_via_sidecar(pcm_bytes: bytes, engine: str = None, dev_mode: bool 
 
     url = SIDECAR_URL
     if engine:
-        url += f"?engine={engine}"
+        url += f"?engine={engine}&raw=true"
+    else:
+        url += "?raw=true"
 
     req = urllib.request.Request(
         url,
@@ -84,11 +58,9 @@ def transcribe_via_sidecar(pcm_bytes: bytes, engine: str = None, dev_mode: bool 
     try:
         with urllib.request.urlopen(req, timeout=10) as resp:
             data = json.loads(resp.read().decode())
-            text = data.get("text", "")
-            return text
+            return data.get("text", "") or data.get("raw_text", "")
     except Exception as e:
-        # Fallback to local in-process router if sidecar daemon is offline
-        print(f"ℹ️ [Dictate] Sidecar unreachable ({e}), using in-process transcription fallback...", file=sys.stderr)
+        # In-process transcription fallback if sidecar daemon is temporarily down
         from core.router import EngineRouter
         router = EngineRouter()
         import tempfile
@@ -97,43 +69,49 @@ def transcribe_via_sidecar(pcm_bytes: bytes, engine: str = None, dev_mode: bool 
             tmp_path = tmp.name
         try:
             res = router.transcribe(tmp_path, engine_key=engine)
-            return TextPolisher.clean_deterministic(res.text, dev_mode=dev_mode)
+            return res.text
         finally:
             if os.path.exists(tmp_path):
                 os.remove(tmp_path)
 
-from core.context.active_window import get_active_window
-from core.context.profiles import get_style_profile_for_window
-from core.context.privacy import PrivacyEngine
-from core.memory.dictionary import PersonalDictionary
-from core.memory.snippets import SnippetManager
-
-privacy_engine = PrivacyEngine()
-dictionary = PersonalDictionary()
-snippet_mgr = SnippetManager()
-
 def main():
-    # 1. Capture target window context before speech
+    # 1. Inspect target window context & privacy boundary
     target_win = get_active_window()
+    privacy = PrivacyEngine()
     profile = get_style_profile_for_window(target_win)
+    dictionary = PersonalDictionary()
+    snippet_mgr = SnippetManager()
 
-    # 2. Record speech
-    pcm_data = record_speech()
+    # 2. Record audio via modular AudioCapture stack
+    capture = AudioCapture(sample_rate=16000, chunk_size=512, silence_timeout_s=0.55)
+    pcm_data = capture.record_utterance(max_duration_s=20.0)
     if not pcm_data:
         sys.exit(0)
 
-    # 3. Transcribe on GPU
-    transcribed_text = transcribe_via_sidecar(
-        pcm_data,
-        dev_mode=(target_win.app_category == "code")
-    )
-    if not transcribed_text or not transcribed_text.strip():
+    # 3. Transcribe audio on local GPU
+    raw_text = transcribe_audio(pcm_data)
+    if not raw_text or not raw_text.strip():
         sys.exit(0)
 
-    # 4. Inject text directly at cursor in active window
+    # 4. Connected Polish Pipeline
+    # 4a. Voice snippet expansion
+    expanded = snippet_mgr.expand_snippets(raw_text)
+
+    # 4b. Context-aware deterministic polish with backtracking & dev transforms
+    polished = TextPolisher.clean_deterministic(
+        expanded,
+        dev_mode=(target_win.app_category == "code"),
+        enable_backtracking=True,
+        profile=profile
+    )
+
+    # 4c. Personal technical dictionary substitution
+    final_text = dictionary.apply_dictionary(polished, app_class=target_win.app_class)
+
+    # 5. Inject text directly at active cursor
     injector = InjectorRouter()
     injector.inject_text(
-        transcribed_text,
+        final_text,
         paste_shortcut=profile.paste_shortcut
     )
 

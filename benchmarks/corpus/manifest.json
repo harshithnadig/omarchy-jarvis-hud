@@ -6,7 +6,22 @@
     "category": "clean_english",
     "language": "en",
     "duration_s": 0.0,
-    "tags": []
+    "tags": [
+      "greeting",
+      "clean"
+    ]
+  },
+  {
+    "id": "clean_02_standup",
+    "audio_path": "clean_02_standup.mp3",
+    "reference_text": "Yesterday I finished the pull request for the authentication service and today I will write unit tests.",
+    "category": "clean_english",
+    "language": "en",
+    "duration_s": 0.0,
+    "tags": [
+      "standup",
+      "daily"
+    ]
   },
   {
     "id": "dev_01_typescript",
@@ -15,7 +30,10 @@
     "category": "developer_terms",
     "language": "en",
     "duration_s": 0.0,
-    "tags": []
+    "tags": [
+      "code",
+      "typescript"
+    ]
   },
   {
     "id": "dev_02_python",
@@ -24,7 +42,46 @@
     "category": "developer_terms",
     "language": "en",
     "duration_s": 0.0,
-    "tags": []
+    "tags": [
+      "code",
+      "python"
+    ]
+  },
+  {
+    "id": "dev_03_react_hook",
+    "audio_path": "dev_03_react_hook.mp3",
+    "reference_text": "const [userProfile, setUserProfile] = useState(null);",
+    "category": "developer_terms",
+    "language": "en",
+    "duration_s": 0.0,
+    "tags": [
+      "code",
+      "react"
+    ]
+  },
+  {
+    "id": "dev_04_sql_query",
+    "audio_path": "dev_04_sql_query.mp3",
+    "reference_text": "SELECT user_id, email, created_at FROM accounts WHERE status = 'active' ORDER BY created_at DESC LIMIT 50;",
+    "category": "developer_terms",
+    "language": "en",
+    "duration_s": 0.0,
+    "tags": [
+      "code",
+      "sql"
+    ]
+  },
+  {
+    "id": "dev_05_shell_git",
+    "audio_path": "dev_05_shell_git.mp3",
+    "reference_text": "git checkout -b feature/audio-pipeline && git push -u origin feature/audio-pipeline",
+    "category": "developer_terms",
+    "language": "en",
+    "duration_s": 0.0,
+    "tags": [
+      "code",
+      "git"
+    ]
   },
   {
     "id": "indian_01_tech",
@@ -33,7 +90,34 @@
     "category": "indian_english",
     "language": "en",
     "duration_s": 0.0,
-    "tags": []
+    "tags": [
+      "accent",
+      "bangalore"
+    ]
+  },
+  {
+    "id": "indian_02_architecture",
+    "audio_path": "indian_02_architecture.mp3",
+    "reference_text": "We need to sync with the Hyderabad backend team regarding the database migration pipeline.",
+    "category": "indian_english",
+    "language": "en",
+    "duration_s": 0.0,
+    "tags": [
+      "accent",
+      "team"
+    ]
+  },
+  {
+    "id": "indian_03_discussion",
+    "audio_path": "indian_03_discussion.mp3",
+    "reference_text": "Kindly verify whether the Redis cluster configuration has been updated before deploying to production.",
+    "category": "indian_english",
+    "language": "en",
+    "duration_s": 0.0,
+    "tags": [
+      "accent",
+      "infra"
+    ]
   },
   {
     "id": "corr_01_backtrack",
@@ -42,7 +126,69 @@
     "category": "self_corrections",
     "language": "en",
     "duration_s": 0.0,
-    "tags": []
+    "tags": [
+      "backtrack"
+    ]
+  },
+  {
+    "id": "corr_02_function_name",
+    "audio_path": "corr_02_function_name.mp3",
+    "reference_text": "Let us name the method get_user_data, I mean fetch_user_data.",
+    "category": "self_corrections",
+    "language": "en",
+    "duration_s": 0.0,
+    "tags": [
+      "backtrack",
+      "naming"
+    ]
+  },
+  {
+    "id": "corr_03_recipient",
+    "audio_path": "corr_03_recipient.mp3",
+    "reference_text": "Send the design document to Rahul - no, Rohan.",
+    "category": "self_corrections",
+    "language": "en",
+    "duration_s": 0.0,
+    "tags": [
+      "backtrack",
+      "names"
+    ]
+  },
+  {
+    "id": "chat_01_slack_msg",
+    "audio_path": "chat_01_slack_msg.mp3",
+    "reference_text": "Hey everyone, I just pushed the bug fix for the login timeout issue. Please take a look when you have a moment.",
+    "category": "chat_messaging",
+    "language": "en",
+    "duration_s": 0.0,
+    "tags": [
+      "slack",
+      "chat"
+    ]
+  },
+  {
+    "id": "chat_02_pr_review",
+    "audio_path": "chat_02_pr_review.mp3",
+    "reference_text": "LGTM, but let's make sure we handle null values in the response payload before merging.",
+    "category": "chat_messaging",
+    "language": "en",
+    "duration_s": 0.0,
+    "tags": [
+      "github",
+      "review"
+    ]
+  },
+  {
+    "id": "doc_01_architecture",
+    "audio_path": "doc_01_architecture.mp3",
+    "reference_text": "The architecture separates voice keyboard dictation from interactive assistant capabilities to prevent UI focus disruption.",
+    "category": "documentation",
+    "language": "en",
+    "duration_s": 0.0,
+    "tags": [
+      "docs",
+      "architecture"
+    ]
   },
   {
     "id": "dictation_01_long",
@@ -51,6 +197,21 @@
     "category": "long_dictation",
     "language": "en",
     "duration_s": 0.0,
-    "tags": []
+    "tags": [
+      "long",
+      "technical"
+    ]
+  },
+  {
+    "id": "dictation_02_linux_wayland",
+    "audio_path": "dictation_02_linux_wayland.mp3",
+    "reference_text": "Hyprland is a dynamic tiling Wayland compositor that does not sacrifice on its looks, offering smooth animations and high customization.",
+    "category": "linux_desktop",
+    "language": "en",
+    "duration_s": 0.0,
+    "tags": [
+      "hyprland",
+      "wayland"
+    ]
   }
 ]

@@ -1,0 +1,40 @@
+{
+  "timestamp": "2026-08-31T11:21:09.380529",
+  "target_window": {
+    "class": "org.omarchy.agent",
+    "title": "foot",
+    "category": "generic"
+  },
+  "injectors": [
+    {
+      "injector": "wtype",
+      "available": true,
+      "latency_ms": 0.0,
+      "error": null
+    },
+    {
+      "injector": "clipboard",
+      "available": true,
+      "latency_ms": 0.0,
+      "error": null
+    },
+    {
+      "injector": "ydotool",
+      "available": false,
+      "latency_ms": null,
+      "error": "ydotool backend is not available on this system."
+    },
+    {
+      "injector": "xdotool",
+      "available": false,
+      "latency_ms": null,
+      "error": "xdotool backend is not available on this system."
+    },
+    {
+      "injector": "atspi",
+      "available": true,
+      "latency_ms": 0.0,
+      "error": null
+    }
+  ]
+}

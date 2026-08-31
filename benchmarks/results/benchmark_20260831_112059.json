@@ -1,0 +1,486 @@
+{
+  "timestamp": "2026-08-31T11:20:17.461378",
+  "gpu_hardware": {
+    "available": true,
+    "name": "NVIDIA GeForce RTX 4060 Laptop GPU",
+    "vram_used_mb": 2234.0,
+    "vram_total_mb": 8188.0,
+    "vram_free_mb": 5602.0,
+    "gpu_util_pct": 0,
+    "temp_c": 43
+  },
+  "samples_count": 18,
+  "engines_tested": [
+    "turbo",
+    "large-v3"
+  ],
+  "engine_results": {
+    "turbo": {
+      "model_name": "whisper-large-v3-turbo",
+      "load_time_s": 6.256,
+      "vram_delta_mb": 2179.0,
+      "sample_results": [
+        {
+          "sample_id": "clean_01_greeting",
+          "raw_text": "Hello, this is a clean test of the offline voice transcription system.",
+          "polished_text": "Hello, this is a clean test of the offline voice transcription system.",
+          "latency_ms": 1136.28,
+          "rtf": 0.227,
+          "audio_duration_s": 5.02,
+          "wer": 0.0,
+          "cer": 0.0,
+          "exact_match": true
+        },
+        {
+          "sample_id": "clean_02_standup",
+          "raw_text": "Yesterday I finished a pull request for the authentication service and today I will write unit tests.",
+          "polished_text": "Yesterday I finished a pull request for the authentication service and today I will write unit tests.",
+          "latency_ms": 649.5,
+          "rtf": 0.101,
+          "audio_duration_s": 6.41,
+          "wer": 0.0588,
+          "cer": 0.0294,
+          "exact_match": false
+        },
+        {
+          "sample_id": "dev_01_typescript",
+          "raw_text": "const result equals await fetch, AP endpoint, headers, authorization, token.",
+          "polished_text": "Const result equals await fetch, AP endpoint, headers, authorization, token.",
+          "latency_ms": 628.25,
+          "rtf": 0.096,
+          "audio_duration_s": 6.55,
+          "wer": 0.5714,
+          "cer": 0.1429,
+          "exact_match": false
+        },
+        {
+          "sample_id": "dev_02_python",
+          "raw_text": "DEF CALCULATE UNDERSCORE LOSS PREDICTIONS TARGETS RETURN TORCH.MEAN PREDICTIONS TARGETS 2",
+          "polished_text": "DEF CALCULATE UNDERSCORE LOSS PREDICTIONS TARGETS RETURN TORCH.MEAN PREDICTIONS TARGETS 2",
+          "latency_ms": 717.58,
+          "rtf": 0.089,
+          "audio_duration_s": 8.09,
+          "wer": 0.8571,
+          "cer": 0.1867,
+          "exact_match": false
+        },
+        {
+          "sample_id": "dev_03_react_hook",
+          "raw_text": "const, user profile, set user profile, equals use state, null.",
+          "polished_text": "Const, user profile, set user profile, equals use state, null.",
+          "latency_ms": 618.2,
+          "rtf": 0.105,
+          "audio_duration_s": 5.88,
+          "wer": 2.25,
+          "cer": 0.2667,
+          "exact_match": false
+        },
+        {
+          "sample_id": "dev_04_sql_query",
+          "raw_text": "Select user underscore ID, email, created underscore at from accounts where status equals active order by created underscore at desk limit 50.",
+          "polished_text": "Select user underscore ID, email, created underscore at from accounts where status equals active order by created underscore at desk limit 50.",
+          "latency_ms": 666.96,
+          "rtf": 0.068,
+          "audio_duration_s": 9.74,
+          "wer": 0.7333,
+          "cer": 0.4444,
+          "exact_match": false
+        },
+        {
+          "sample_id": "dev_05_shell_git",
+          "raw_text": "git checkout b feature slash audio pipeline and in git push u origin feature slash audio pipeline",
+          "polished_text": "Git checkout b feature slash audio pipeline and in git push u origin feature slash audio pipeline",
+          "latency_ms": 631.62,
+          "rtf": 0.085,
+          "audio_duration_s": 7.46,
+          "wer": 1.1111,
+          "cer": 0.3108,
+          "exact_match": false
+        },
+        {
+          "sample_id": "indian_01_tech",
+          "raw_text": "Please deploy the latest build on the Bangalore staging server and monitor the latency.",
+          "polished_text": "Please deploy the latest build on the Bangalore staging server and monitor the latency.",
+          "latency_ms": 632.96,
+          "rtf": 0.1,
+          "audio_duration_s": 6.34,
+          "wer": 0.0,
+          "cer": 0.0,
+          "exact_match": true
+        },
+        {
+          "sample_id": "indian_02_architecture",
+          "raw_text": "We need to sync with the Hyderabad backend team regarding the database migration pipeline.",
+          "polished_text": "We need to sync with the Hyderabad backend team regarding the database migration pipeline.",
+          "latency_ms": 648.19,
+          "rtf": 0.096,
+          "audio_duration_s": 6.74,
+          "wer": 0.0,
+          "cer": 0.0,
+          "exact_match": true
+        },
+        {
+          "sample_id": "indian_03_discussion",
+          "raw_text": "Kindly verify whether the Redis cluster configuration has been updated before deploying to production.",
+          "polished_text": "Kindly verify whether the Redis cluster configuration has been updated before deploying to production.",
+          "latency_ms": 645.56,
+          "rtf": 0.088,
+          "audio_duration_s": 7.3,
+          "wer": 0.0,
+          "cer": 0.0,
+          "exact_match": true
+        },
+        {
+          "sample_id": "corr_01_backtrack",
+          "raw_text": "Schedule the deployment for Tuesday actually Wednesday morning.",
+          "polished_text": "Schedule the deployment for Wednesday morning.",
+          "latency_ms": 631.03,
+          "rtf": 0.154,
+          "audio_duration_s": 4.1,
+          "wer": 0.25,
+          "cer": 0.2742,
+          "exact_match": false
+        },
+        {
+          "sample_id": "corr_02_function_name",
+          "raw_text": "Let us name the method get underscore user underscore data, I mean fetch underscore user underscore data.",
+          "polished_text": "Let us name the method get underscore user underscore fetch underscore user underscore data.",
+          "latency_ms": 647.59,
+          "rtf": 0.1,
+          "audio_duration_s": 6.48,
+          "wer": 1.0,
+          "cer": 0.7627,
+          "exact_match": false
+        },
+        {
+          "sample_id": "corr_03_recipient",
+          "raw_text": "Send the design document to Rahul, no, Rohan.",
+          "polished_text": "Send the design document to Rohan.",
+          "latency_ms": 634.61,
+          "rtf": 0.15,
+          "audio_duration_s": 4.22,
+          "wer": 0.25,
+          "cer": 0.2143,
+          "exact_match": false
+        },
+        {
+          "sample_id": "chat_01_slack_msg",
+          "raw_text": "Hey everyone, I just pushed the bug fix for the login timeout issue. Please take a look when you have a moment.",
+          "polished_text": "Hey everyone, I just pushed the bug fix for the login timeout issue. Please take a look when you have a moment.",
+          "latency_ms": 726.81,
+          "rtf": 0.095,
+          "audio_duration_s": 7.63,
+          "wer": 0.0,
+          "cer": 0.0,
+          "exact_match": true
+        },
+        {
+          "sample_id": "chat_02_pr_review",
+          "raw_text": "lgtm, but let's make sure we handle null values in the response payload before merging.",
+          "polished_text": "Lgtm, but let's make sure we handle null values in the response payload before merging.",
+          "latency_ms": 642.85,
+          "rtf": 0.105,
+          "audio_duration_s": 6.14,
+          "wer": 0.0,
+          "cer": 0.0,
+          "exact_match": true
+        },
+        {
+          "sample_id": "doc_01_architecture",
+          "raw_text": "The architecture separates voice keyboard dictation from interactive assistant capabilities to prevent UI focus disruption.",
+          "polished_text": "The architecture separates voice keyboard dictation from interactive assistant capabilities to prevent UI focus disruption.",
+          "latency_ms": 657.02,
+          "rtf": 0.087,
+          "audio_duration_s": 7.58,
+          "wer": 0.0,
+          "cer": 0.0,
+          "exact_match": true
+        },
+        {
+          "sample_id": "dictation_01_long",
+          "raw_text": "The local voice dictation pipeline uses Celero voice activity detection to segment incoming audio chunks and passes them to high-performance whisper models for low-latency transcription.",
+          "polished_text": "The local voice dictation pipeline uses Celero voice activity detection to segment incoming audio chunks and passes them to high-performance whisper models for low-latency transcription.",
+          "latency_ms": 727.25,
+          "rtf": 0.066,
+          "audio_duration_s": 11.04,
+          "wer": 0.1852,
+          "cer": 0.0216,
+          "exact_match": false
+        },
+        {
+          "sample_id": "dictation_02_linux_wayland",
+          "raw_text": "Hyperland is a dynamic tiling Wayland compositor that does not sacrifice on its looks, offering smooth animations and high customization.",
+          "polished_text": "Hyperland is a dynamic tiling Wayland compositor that does not sacrifice on its looks, offering smooth animations and high customization.",
+          "latency_ms": 679.92,
+          "rtf": 0.077,
+          "audio_duration_s": 8.83,
+          "wer": 0.05,
+          "cer": 0.0075,
+          "exact_match": false
+        }
+      ],
+      "errors": [],
+      "summary": {
+        "latency_stats_ms": {
+          "count": 18,
+          "min": 618.2,
+          "max": 1136.28,
+          "mean": 684.57,
+          "p50": 647.89,
+          "p90": 726.94,
+          "p95": 788.6,
+          "p99": 1066.74
+        },
+        "rtf_stats": {
+          "count": 18,
+          "min": 0.07,
+          "max": 0.23,
+          "mean": 0.1,
+          "p50": 0.1,
+          "p90": 0.15,
+          "p95": 0.16,
+          "p99": 0.21
+        },
+        "mean_wer": 0.4065,
+        "mean_cer": 0.1478,
+        "exact_match_pct": 38.89,
+        "total_transcribed": 18,
+        "error_count": 0
+      }
+    },
+    "large-v3": {
+      "model_name": "whisper-large-v3",
+      "load_time_s": 6.085,
+      "vram_delta_mb": 3776.0,
+      "sample_results": [
+        {
+          "sample_id": "clean_01_greeting",
+          "raw_text": "Hello, this is a clean test of the offline voice transcription system.",
+          "polished_text": "Hello, this is a clean test of the offline voice transcription system.",
+          "latency_ms": 855.36,
+          "rtf": 0.171,
+          "audio_duration_s": 5.02,
+          "wer": 0.0,
+          "cer": 0.0,
+          "exact_match": true
+        },
+        {
+          "sample_id": "clean_02_standup",
+          "raw_text": "Yesterday I finished the pull request for the authentication service and today I will write unit tests.",
+          "polished_text": "Yesterday I finished the pull request for the authentication service and today I will write unit tests.",
+          "latency_ms": 874.5,
+          "rtf": 0.136,
+          "audio_duration_s": 6.41,
+          "wer": 0.0,
+          "cer": 0.0,
+          "exact_match": true
+        },
+        {
+          "sample_id": "dev_01_typescript",
+          "raw_text": "Const result equals await fetch, AP endpoint, headers, authorization, token.",
+          "polished_text": "Const result equals await fetch, AP endpoint, headers, authorization, token.",
+          "latency_ms": 841.12,
+          "rtf": 0.128,
+          "audio_duration_s": 6.55,
+          "wer": 0.5714,
+          "cer": 0.1429,
+          "exact_match": false
+        },
+        {
+          "sample_id": "dev_02_python",
+          "raw_text": "Def calculate underscore loss, predictions, targets return torch dot mean, predictions, targets, 2.",
+          "polished_text": "Def calculate underscore loss, predictions, targets return torch dot mean, predictions, targets, 2.",
+          "latency_ms": 886.04,
+          "rtf": 0.11,
+          "audio_duration_s": 8.09,
+          "wer": 1.1429,
+          "cer": 0.2533,
+          "exact_match": false
+        },
+        {
+          "sample_id": "dev_03_react_hook",
+          "raw_text": "const userProfile, setUserProfile, equals useState, null.",
+          "polished_text": "Const userProfile, setUserProfile, equals useState, null.",
+          "latency_ms": 872.93,
+          "rtf": 0.148,
+          "audio_duration_s": 5.88,
+          "wer": 0.75,
+          "cer": 0.1778,
+          "exact_match": false
+        },
+        {
+          "sample_id": "dev_04_sql_query",
+          "raw_text": "Select user underscore ID, email, created underscore at from accounts where status equals, active, order by created underscore at desk limit 50.",
+          "polished_text": "Select user underscore ID, email, created underscore at from accounts where status equals, active, order by created underscore at desk limit 50.",
+          "latency_ms": 980.87,
+          "rtf": 0.101,
+          "audio_duration_s": 9.74,
+          "wer": 0.7333,
+          "cer": 0.4444,
+          "exact_match": false
+        },
+        {
+          "sample_id": "dev_05_shell_git",
+          "raw_text": "git checkout bfeature slash audio pipeline and in git push u origin feature slash audio pipeline.",
+          "polished_text": "Git checkout bfeature slash audio pipeline and in git push u origin feature slash audio pipeline.",
+          "latency_ms": 909.69,
+          "rtf": 0.122,
+          "audio_duration_s": 7.46,
+          "wer": 1.1111,
+          "cer": 0.3243,
+          "exact_match": false
+        },
+        {
+          "sample_id": "indian_01_tech",
+          "raw_text": "Please deploy the latest build on the Bangalore staging server and monitor the latency.",
+          "polished_text": "Please deploy the latest build on the Bangalore staging server and monitor the latency.",
+          "latency_ms": 879.93,
+          "rtf": 0.139,
+          "audio_duration_s": 6.34,
+          "wer": 0.0,
+          "cer": 0.0,
+          "exact_match": true
+        },
+        {
+          "sample_id": "indian_02_architecture",
+          "raw_text": "We need to sync with the Hyderabad backend team regarding the database migration pipeline.",
+          "polished_text": "We need to sync with the Hyderabad backend team regarding the database migration pipeline.",
+          "latency_ms": 874.66,
+          "rtf": 0.13,
+          "audio_duration_s": 6.74,
+          "wer": 0.0,
+          "cer": 0.0,
+          "exact_match": true
+        },
+        {
+          "sample_id": "indian_03_discussion",
+          "raw_text": "Kindly verify whether the Redis cluster configuration has been updated before deploying to production.",
+          "polished_text": "Kindly verify whether the Redis cluster configuration has been updated before deploying to production.",
+          "latency_ms": 876.09,
+          "rtf": 0.12,
+          "audio_duration_s": 7.3,
+          "wer": 0.0,
+          "cer": 0.0,
+          "exact_match": true
+        },
+        {
+          "sample_id": "corr_01_backtrack",
+          "raw_text": "Schedule the deployment for Tuesday actually Wednesday morning.",
+          "polished_text": "Schedule the deployment for Wednesday morning.",
+          "latency_ms": 800.58,
+          "rtf": 0.195,
+          "audio_duration_s": 4.1,
+          "wer": 0.25,
+          "cer": 0.2742,
+          "exact_match": false
+        },
+        {
+          "sample_id": "corr_02_function_name",
+          "raw_text": "Let us name the method get underscore user underscore data, I mean fetch underscore user underscore data.",
+          "polished_text": "Let us name the method get underscore user underscore fetch underscore user underscore data.",
+          "latency_ms": 944.24,
+          "rtf": 0.146,
+          "audio_duration_s": 6.48,
+          "wer": 1.0,
+          "cer": 0.7627,
+          "exact_match": false
+        },
+        {
+          "sample_id": "corr_03_recipient",
+          "raw_text": "Send the design document to Rahul, no, Rohan.",
+          "polished_text": "Send the design document to Rohan.",
+          "latency_ms": 846.98,
+          "rtf": 0.201,
+          "audio_duration_s": 4.22,
+          "wer": 0.25,
+          "cer": 0.2143,
+          "exact_match": false
+        },
+        {
+          "sample_id": "chat_01_slack_msg",
+          "raw_text": "Hey everyone, I just pushed the bug fix for the login timeout issue. Please take a look when you have a moment.",
+          "polished_text": "Hey everyone, I just pushed the bug fix for the login timeout issue. Please take a look when you have a moment.",
+          "latency_ms": 1022.65,
+          "rtf": 0.134,
+          "audio_duration_s": 7.63,
+          "wer": 0.0,
+          "cer": 0.0,
+          "exact_match": true
+        },
+        {
+          "sample_id": "chat_02_pr_review",
+          "raw_text": "LGTM, but let's make sure we handle null values in the response payload before merging.",
+          "polished_text": "LGTM, but let's make sure we handle null values in the response payload before merging.",
+          "latency_ms": 889.65,
+          "rtf": 0.145,
+          "audio_duration_s": 6.14,
+          "wer": 0.0,
+          "cer": 0.0,
+          "exact_match": true
+        },
+        {
+          "sample_id": "doc_01_architecture",
+          "raw_text": "The architecture separates voice keyboard dictation from interactive assistant capabilities to prevent UI focus disruption.",
+          "polished_text": "The architecture separates voice keyboard dictation from interactive assistant capabilities to prevent UI focus disruption.",
+          "latency_ms": 895.66,
+          "rtf": 0.118,
+          "audio_duration_s": 7.58,
+          "wer": 0.0,
+          "cer": 0.0,
+          "exact_match": true
+        },
+        {
+          "sample_id": "dictation_01_long",
+          "raw_text": "The local voice dictation pipeline uses Solero voice activity detection to segment incoming audio chunks and passes them to high-performance whisper models for low-latency transcription.",
+          "polished_text": "The local voice dictation pipeline uses Solero voice activity detection to segment incoming audio chunks and passes them to high-performance whisper models for low-latency transcription.",
+          "latency_ms": 1129.69,
+          "rtf": 0.102,
+          "audio_duration_s": 11.04,
+          "wer": 0.1852,
+          "cer": 0.0162,
+          "exact_match": false
+        },
+        {
+          "sample_id": "dictation_02_linux_wayland",
+          "raw_text": "Hyperland is a dynamic tiling Wayland compositor that does not sacrifice on its looks, offering smooth animations and high customization.",
+          "polished_text": "Hyperland is a dynamic tiling Wayland compositor that does not sacrifice on its looks, offering smooth animations and high customization.",
+          "latency_ms": 1051.31,
+          "rtf": 0.119,
+          "audio_duration_s": 8.83,
+          "wer": 0.05,
+          "cer": 0.0075,
+          "exact_match": false
+        }
+      ],
+      "errors": [],
+      "summary": {
+        "latency_stats_ms": {
+          "count": 18,
+          "min": 800.58,
+          "max": 1129.69,
+          "mean": 912.89,
+          "p50": 882.98,
+          "p90": 1031.25,
+          "p95": 1063.07,
+          "p99": 1116.37
+        },
+        "rtf_stats": {
+          "count": 18,
+          "min": 0.1,
+          "max": 0.2,
+          "mean": 0.14,
+          "p50": 0.13,
+          "p90": 0.18,
+          "p95": 0.2,
+          "p99": 0.2
+        },
+        "mean_wer": 0.3358,
+        "mean_cer": 0.1454,
+        "exact_match_pct": 44.44,
+        "total_transcribed": 18,
+        "error_count": 0
+      }
+    }
+  },
+  "detailed_rows": []
+}

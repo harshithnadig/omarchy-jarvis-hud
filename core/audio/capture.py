@@ -32,6 +32,8 @@ class AudioCapture:
         )
 
         audio_frames = []
+        pre_speech_buffer = []
+        pre_speech_max = 4  # Keep ~128ms of pre-speech audio
         max_frames = int(max_duration_s * self.sample_rate / self.chunk_size)
 
         with sd.InputStream(samplerate=self.sample_rate, channels=1, blocksize=self.chunk_size, dtype='float32') as stream:
@@ -45,7 +47,14 @@ class AudioCapture:
 
                 is_endpoint = detector.process_frame(chunk)
                 if detector.speech_started:
+                    if pre_speech_buffer:
+                        audio_frames.extend(pre_speech_buffer)
+                        pre_speech_buffer.clear()
                     audio_frames.append(raw_pcm)
+                else:
+                    pre_speech_buffer.append(raw_pcm)
+                    if len(pre_speech_buffer) > pre_speech_max:
+                        pre_speech_buffer.pop(0)
 
                 if is_endpoint:
                     break

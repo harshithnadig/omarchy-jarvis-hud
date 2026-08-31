@@ -9,20 +9,33 @@ SENSITIVE_WINDOW_PATTERNS = [
     r"\b(?:banking|bank|checkout|credit card|cvv)\b",
 ]
 
+from .atspi import AtspiInspector
+
 class PrivacyEngine:
     """
     Manages privacy protection, sensitive input masking, and global Private Mode.
+    Combines AT-SPI field role detection with window title heuristics.
     """
     def __init__(self, private_mode: bool = False):
         self.private_mode = private_mode
+        self.atspi = AtspiInspector()
 
     def is_sensitive(self, context: Optional[WindowContext]) -> bool:
-        """Check if active window corresponds to a sensitive credential or banking input."""
+        """Check if active window or focused field corresponds to a sensitive credential input."""
         if not context:
             return False
 
-        search_text = f"{context.app_class} {context.title} {context.initial_title}".lower()
+        # 1. AT-SPI direct field check (e.g. <input type="password"> in Chrome)
+        try:
+            if self.atspi.is_available():
+                field = self.atspi.inspect_focused_field()
+                if field.is_password:
+                    return True
+        except Exception:
+            pass
 
+        # 2. Window title and class heuristics
+        search_text = f"{context.app_class} {context.title} {context.initial_title}".lower()
         for pat in SENSITIVE_WINDOW_PATTERNS:
             if re.search(pat, search_text, flags=re.IGNORECASE):
                 return True

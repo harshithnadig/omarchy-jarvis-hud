@@ -123,68 +123,46 @@ def cmd_record(args):
 
 
 def cmd_generate_synthetic(args):
-    """Generate synthetic reference samples using Edge-TTS for reproducible baseline testing."""
+    """Generate synthetic reference samples using Edge-TTS for all items in manifest.json."""
     import edge_tts
     out_dir = args.outdir
     os.makedirs(out_dir, exist_ok=True)
+    manifest_path = os.path.join(out_dir, "manifest.json")
 
-    synthetic_corpus = [
-        {
-            "id": "clean_01_greeting",
-            "category": "clean_english",
-            "ref": "Hello, this is a clean test of the offline voice transcription system.",
-            "voice": "en-US-ChristopherNeural"
-        },
-        {
-            "id": "dev_01_typescript",
-            "category": "developer_terms",
-            "ref": "const result = await fetch(apiEndpoint, { headers: { Authorization: token } });",
-            "voice": "en-US-ChristopherNeural"
-        },
-        {
-            "id": "dev_02_python",
-            "category": "developer_terms",
-            "ref": "def calculate_loss(predictions, targets): return torch.mean((predictions - targets) ** 2)",
-            "voice": "en-US-ChristopherNeural"
-        },
-        {
-            "id": "indian_01_tech",
-            "category": "indian_english",
-            "ref": "Please deploy the latest build on the Bangalore staging server and monitor the latency.",
-            "voice": "en-IN-PrabhatNeural"
-        },
-        {
-            "id": "corr_01_backtrack",
-            "category": "self_corrections",
-            "ref": "Schedule the deployment for Tuesday actually Wednesday morning.",
-            "voice": "en-US-ChristopherNeural"
-        },
-        {
-            "id": "dictation_01_long",
-            "category": "long_dictation",
-            "ref": "The local voice dictation pipeline uses Silero Voice Activity Detection to segment incoming audio chunks and passes them to high performance Whisper models for low latency transcription.",
-            "voice": "en-US-ChristopherNeural"
-        }
-    ]
+    if not os.path.exists(manifest_path):
+        print(f"❌ Manifest not found at '{manifest_path}'")
+        sys.exit(1)
+
+    with open(manifest_path, "r", encoding="utf-8") as f:
+        raw_items = json.load(f)
 
     samples = []
-    print(f"🔨 Generating {len(synthetic_corpus)} synthetic benchmark samples in '{out_dir}'...")
+    print(f"🔨 Generating {len(raw_items)} synthetic benchmark samples in '{out_dir}'...")
 
     async def generate_all():
-        for item in synthetic_corpus:
-            wav_path = os.path.join(out_dir, f"{item['id']}.mp3")
-            communicate = edge_tts.Communicate(item["ref"], item["voice"])
+        for item in raw_items:
+            audio_filename = item["audio_path"]
+            if not audio_filename.endswith((".mp3", ".wav")):
+                audio_filename += ".mp3"
+            wav_path = os.path.join(out_dir, os.path.basename(audio_filename))
+
+            # Select voice accent
+            voice = "en-IN-PrabhatNeural" if item.get("category") == "indian_english" else "en-US-ChristopherNeural"
+            
+            communicate = edge_tts.Communicate(item["reference_text"], voice)
             await communicate.save(wav_path)
+
             samples.append(BenchmarkSample(
                 id=item["id"],
-                audio_path=f"{item['id']}.mp3",
-                reference_text=item["ref"],
-                category=item["category"]
+                audio_path=os.path.basename(wav_path),
+                reference_text=item["reference_text"],
+                category=item.get("category", "general"),
+                language=item.get("language", "en"),
+                tags=item.get("tags", [])
             ))
-            print(f"  • Generated [{item['category']}]: {item['id']}")
+            print(f"  • Generated [{item.get('category')}]: {item['id']}")
 
     asyncio.run(generate_all())
-    manifest_path = os.path.join(out_dir, "manifest.json")
     save_manifest(samples, manifest_path)
     print(f"✅ Synthetic corpus created at '{manifest_path}' with {len(samples)} samples.")
 

@@ -54,35 +54,12 @@ def speak(text: str):
     except Exception as e:
         print(f"TTS error: {e}", file=sys.stderr)
 
+from core.audio.capture import AudioCapture
+
 def record_assistant_query(max_seconds: float = 12.0) -> bytes:
-    vad_model = get_vad_model()
-    audio_frames = []
-    speech_started = False
-    silence_frames = 0
-    speech_frames = 0
-
     notify("JARVIS", "Listening for assistant command...")
-
-    with sd.InputStream(samplerate=SAMPLE_RATE, channels=1, blocksize=CHUNK_SIZE, dtype='float32') as stream:
-        for _ in range(int(max_seconds * SAMPLE_RATE / CHUNK_SIZE)):
-            data, _ = stream.read(CHUNK_SIZE)
-            chunk = data[:, 0]
-            raw_pcm = (chunk * 32767).astype(np.int16)
-            prob = float(vad_model(chunk)[0])
-
-            if prob > 0.35:
-                speech_started = True
-                speech_frames += 1
-                silence_frames = 0
-                audio_frames.append(raw_pcm.tobytes())
-            else:
-                if speech_started:
-                    audio_frames.append(raw_pcm.tobytes())
-                    silence_frames += 1
-                    if silence_frames > 16 and speech_frames > 6:
-                        break
-
-    return b"".join(audio_frames)
+    capture = AudioCapture(sample_rate=SAMPLE_RATE, chunk_size=CHUNK_SIZE, silence_timeout_s=0.6)
+    return capture.record_utterance(max_duration_s=max_seconds)
 
 def transcribe_audio(pcm_bytes: bytes) -> str:
     out_buf = io.BytesIO()
