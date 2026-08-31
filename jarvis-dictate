@@ -60,10 +60,11 @@ def transcribe_audio(pcm_bytes: bytes, engine: str = None) -> str:
             data = json.loads(resp.read().decode())
             return data.get("text", "") or data.get("raw_text", "")
     except Exception as e:
-        # In-process transcription fallback if sidecar daemon is temporarily down
+        # In-process transcription fallback if sidecar daemon is disabled/stopped
         from core.router import EngineRouter
         router = EngineRouter()
         import tempfile
+        import gc
         with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as tmp:
             tmp.write(wav_data)
             tmp_path = tmp.name
@@ -73,6 +74,16 @@ def transcribe_audio(pcm_bytes: bytes, engine: str = None) -> str:
         finally:
             if os.path.exists(tmp_path):
                 os.remove(tmp_path)
+            # Immediately unload model and release VRAM so Qwen/LLMs have 100% GPU memory
+            try:
+                eng = router.get_engine(engine)
+                eng.unload_model()
+                import torch
+                if torch.cuda.is_available():
+                    torch.cuda.empty_cache()
+            except Exception:
+                pass
+            gc.collect()
 
 def main():
     # 1. Inspect target window context & privacy boundary
