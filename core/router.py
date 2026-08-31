@@ -73,3 +73,17 @@ class EngineRouter:
             hotwords=hotwords,
             **kwargs
         )
+
+    def start_streaming_session(
+        self,
+        engine_key: Optional[str] = None,
+        language: Optional[str] = None,
+        hotwords: Optional[str] = None,
+        partial_step_seconds: float = 0.5
+    ):
+        engine = self.get_engine(engine_key)
+        return engine.start_streaming_session(
+            language=language,
+            hotwords=hotwords,
+            partial_step_seconds=partial_step_seconds
+        )

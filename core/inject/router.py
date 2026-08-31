@@ -42,6 +42,8 @@ class InjectorRouter:
             f"Unknown text injection method: '{target}'. Available: ['auto', 'wtype', 'clipboard']"
         )
 
-    def inject_text(self, text: str, method: Optional[str] = None) -> bool:
+    def inject_text(self, text: str, method: Optional[str] = None, paste_shortcut: str = "ctrl+v") -> bool:
         injector = self.get_injector(method)
+        if isinstance(injector, SafeClipboardInjector):
+            return injector.inject(text, paste_shortcut=paste_shortcut)
         return injector.inject(text)

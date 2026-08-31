@@ -35,14 +35,17 @@ class SafeClipboardInjector(TextInjector):
         except Exception as e:
             raise TextInjectionError(f"Failed to copy to clipboard via wl-copy: {e}") from e
 
-    def _send_paste_keystroke(self):
+    def _send_paste_keystroke(self, shortcut: str = "ctrl+v"):
         try:
-            # Send Ctrl+V keystroke via wtype
-            subprocess.run(["wtype", "-M", "ctrl", "-P", "v", "-m", "ctrl"], check=True, timeout=1)
+            if shortcut.lower() == "ctrl+shift+v":
+                subprocess.run(["wtype", "-M", "ctrl", "-M", "shift", "-P", "v", "-m", "shift", "-m", "ctrl"], check=True, timeout=1)
+            else:
+                # Standard Ctrl+V
+                subprocess.run(["wtype", "-M", "ctrl", "-P", "v", "-m", "ctrl"], check=True, timeout=1)
         except Exception as e:
-            raise TextInjectionError(f"Failed to send paste keystroke via wtype: {e}") from e
+            raise TextInjectionError(f"Failed to send paste keystroke ({shortcut}) via wtype: {e}") from e
 
-    def inject(self, text: str) -> bool:
+    def inject(self, text: str, paste_shortcut: str = "ctrl+v") -> bool:
         if not text:
             return True
         if not self.is_available():
@@ -55,7 +58,7 @@ class SafeClipboardInjector(TextInjector):
             self._set_clipboard(text)
 
             # 2. Trigger paste in active window
-            self._send_paste_keystroke()
+            self._send_paste_keystroke(shortcut=paste_shortcut)
 
             # 3. Allow target application window a brief window to receive paste event
             if self.restore_delay_ms > 0:

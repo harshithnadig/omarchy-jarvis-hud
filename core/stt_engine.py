@@ -59,6 +59,21 @@ class STTEngine(ABC):
         """Transcribe an audio file from disk."""
         pass
 
+    def start_streaming_session(
+        self,
+        language: Optional[str] = None,
+        hotwords: Optional[str] = None,
+        partial_step_seconds: float = 0.5
+    ):
+        """Create a streaming session for chunk-by-chunk audio processing."""
+        from .streaming import BufferStreamingSession
+        return BufferStreamingSession(
+            engine=self,
+            language=language,
+            hotwords=hotwords,
+            partial_step_seconds=partial_step_seconds
+        )
+
     def unload_model(self):
         """Free VRAM/memory if needed."""
         self.is_loaded = False

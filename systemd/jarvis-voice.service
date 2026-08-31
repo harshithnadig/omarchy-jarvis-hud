@@ -1,0 +1,14 @@
+[Unit]
+Description=JARVIS Voice GPU ASR Sidecar Service
+After=network.target pipewire.service
+
+[Service]
+Type=simple
+Environment=PYTHONUNBUFFERED=1
+WorkingDirectory=%h/Work/omarchy-jarvis-hud
+ExecStart=%h/.local/share/whisrs-gpu-env/bin/python whisrs_sidecar.py
+Restart=always
+RestartSec=2
+
+[Install]
+WantedBy=default.target

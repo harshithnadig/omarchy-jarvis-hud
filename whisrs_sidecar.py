@@ -52,6 +52,14 @@ def switch_engine(key: str = Query(..., description="Engine key: turbo, large-v3
     except (ValueError, STTError) as e:
         raise HTTPException(status_code=400, detail=str(e))
 
+from core.context.active_window import get_active_window
+from core.context.profiles import get_style_profile_for_window
+from core.memory.dictionary import PersonalDictionary
+from core.memory.snippets import SnippetManager
+
+dictionary = PersonalDictionary()
+snippet_mgr = SnippetManager()
+
 @app.post("/transcribe")
 async def transcribe(
     file: UploadFile = File(...),
@@ -74,8 +82,26 @@ async def transcribe(
             hotwords=hotwords
         )
 
-        # Apply safe deterministic polish unless raw is requested
-        final_text = result.text if raw else TextPolisher.clean_deterministic(result.text)
+        if raw:
+            final_text = result.text
+        else:
+            # 1. Expand custom voice snippets
+            expanded = snippet_mgr.expand_snippets(result.text)
+
+            # 2. Check active window & style profile
+            win_ctx = get_active_window()
+            profile = get_style_profile_for_window(win_ctx)
+
+            # 3. Apply deterministic polish & backtracking
+            polished = TextPolisher.clean_deterministic(
+                expanded,
+                dev_mode=(win_ctx.app_category == "code"),
+                enable_backtracking=True,
+                profile=profile
+            )
+
+            # 4. Apply personal technical dictionary
+            final_text = dictionary.apply_dictionary(polished, app_class=win_ctx.app_class)
 
         print(f"🎙️ [{result.engine_name}] ({result.latency_ms}ms | RTF: {result.rtf}x): {final_text}", flush=True)
 

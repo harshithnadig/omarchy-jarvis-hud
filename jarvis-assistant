@@ -1,0 +1,150 @@
+#!/usr/bin/env python3
+"""
+JARVIS Assistant Client (Mode B — Voice AI Assistant)
+Triggered via separate hotkey (Super+J).
+Handles system controls, time/date/battery queries, and deep Antigravity agent execution.
+"""
+import os
+import sys
+import io
+import wave
+import json
+import re
+import urllib.request
+import subprocess
+import asyncio
+import sounddevice as sd
+import numpy as np
+from faster_whisper.vad import get_vad_model
+import edge_tts
+from core.assistant.router import AssistantRouter
+
+SAMPLE_RATE = 16000
+CHUNK_SIZE = 512
+VOICE = os.environ.get("JARVIS_VOICE", "en-US-ChristopherNeural")
+SIDECAR_URL = os.environ.get("JARVIS_SIDECAR_URL", "http://127.0.0.1:8765/transcribe")
+
+def notify(title, msg):
+    subprocess.run(["notify-send", "-a", "JARVIS", "-i", "dialog-information", title, msg], check=False)
+
+def speak(text: str):
+    if not text or not text.strip():
+        return
+
+    clean = re.sub(r"```[\s\S]*?```", " Code snippet. ", text)
+    clean = re.sub(r"`[^`]*`", "", clean)
+    clean = re.sub(r"\[([^\]]+)\]\([^)]+\)", r"\1", clean)
+    clean = re.sub(r"[#*_~>|]", " ", clean)
+    clean = re.sub(r"\s+", " ", clean).strip()
+    if not clean:
+        return
+
+    try:
+        cmd = ["mpv", "--no-config", "--no-video", "--no-audio-display", "--really-quiet", "--title=jarvis_audio", "-"]
+        proc = subprocess.Popen(cmd, stdin=subprocess.PIPE, stderr=subprocess.DEVNULL)
+        async def stream_audio():
+            communicate = edge_tts.Communicate(clean, VOICE)
+            async for chunk in communicate.stream():
+                if chunk["type"] == "audio":
+                    proc.stdin.write(chunk["data"])
+                    proc.stdin.flush()
+        asyncio.run(stream_audio())
+        proc.stdin.close()
+        proc.wait()
+    except Exception as e:
+        print(f"TTS error: {e}", file=sys.stderr)
+
+def record_assistant_query(max_seconds: float = 12.0) -> bytes:
+    vad_model = get_vad_model()
+    audio_frames = []
+    speech_started = False
+    silence_frames = 0
+    speech_frames = 0
+
+    notify("JARVIS", "Listening for assistant command...")
+
+    with sd.InputStream(samplerate=SAMPLE_RATE, channels=1, blocksize=CHUNK_SIZE, dtype='float32') as stream:
+        for _ in range(int(max_seconds * SAMPLE_RATE / CHUNK_SIZE)):
+            data, _ = stream.read(CHUNK_SIZE)
+            chunk = data[:, 0]
+            raw_pcm = (chunk * 32767).astype(np.int16)
+            prob = float(vad_model(chunk)[0])
+
+            if prob > 0.35:
+                speech_started = True
+                speech_frames += 1
+                silence_frames = 0
+                audio_frames.append(raw_pcm.tobytes())
+            else:
+                if speech_started:
+                    audio_frames.append(raw_pcm.tobytes())
+                    silence_frames += 1
+                    if silence_frames > 16 and speech_frames > 6:
+                        break
+
+    return b"".join(audio_frames)
+
+def transcribe_audio(pcm_bytes: bytes) -> str:
+    out_buf = io.BytesIO()
+    with wave.open(out_buf, "wb") as wf:
+        wf.setnchannels(1)
+        wf.setsampwidth(2)
+        wf.setframerate(SAMPLE_RATE)
+        wf.writeframes(pcm_bytes)
+    wav_data = out_buf.getvalue()
+
+    boundary = "----WebKitFormBoundaryJarvisAssistant88"
+    body = (
+        f"--{boundary}\r\n"
+        f'Content-Disposition: form-data; name="file"; filename="audio.wav"\r\n'
+        f"Content-Type: audio/wav\r\n\r\n"
+    ).encode("utf-8") + wav_data + f"\r\n--{boundary}--\r\n".encode("utf-8")
+
+    req = urllib.request.Request(
+        SIDECAR_URL,
+        data=body,
+        headers={"Content-Type": f"multipart/form-data; boundary={boundary}"}
+    )
+
+    try:
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            data = json.loads(resp.read().decode())
+            return data.get("text", "").strip()
+    except Exception:
+        # Fallback to local in-process router
+        from core.router import EngineRouter
+        router = EngineRouter()
+        import tempfile
+        with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as tmp:
+            tmp.write(wav_data)
+            tmp_path = tmp.name
+        try:
+            res = router.transcribe(tmp_path)
+            return res.text
+        finally:
+            if os.path.exists(tmp_path):
+                os.remove(tmp_path)
+
+def main():
+    pcm_data = record_assistant_query()
+    if not pcm_data:
+        notify("JARVIS", "No speech detected.")
+        sys.exit(0)
+
+    notify("JARVIS", "Processing query on GPU...")
+    query_text = transcribe_audio(pcm_data)
+    if not query_text:
+        notify("JARVIS", "Could not understand audio.")
+        sys.exit(0)
+
+    print(f"User: {query_text}")
+    notify("You Said", query_text)
+
+    # Route query
+    response = AssistantRouter.process_query(query_text)
+    print(f"JARVIS ({response.executed_by}): {response.spoken_text}")
+    notify("JARVIS", response.spoken_text[:120] + "...")
+    speak(response.spoken_text)
+
+if __name__ == "__main__":
+    main()

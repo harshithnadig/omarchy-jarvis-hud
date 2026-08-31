@@ -1,0 +1,152 @@
+#!/usr/bin/env python3
+"""
+JARVIS Voice Unified CLI
+Master CLI interface for Dictation (Mode A), Assistant (Mode B), diagnostics, and STT management.
+"""
+import os
+import sys
+import argparse
+import subprocess
+import urllib.request
+import json
+
+from core.doctor import print_doctor_report
+from core.gpu_utils import get_gpu_info
+from core.context.active_window import get_active_window
+from core.router import EngineRouter
+
+REPO_DIR = os.path.dirname(os.path.abspath(__file__))
+SIDECAR_URL = os.environ.get("JARVIS_SIDECAR_URL", "http://127.0.0.1:8765")
+
+def cmd_status(args):
+    print("=" * 60)
+    print("🎙️ JARVIS VOICE STATUS")
+    print("=" * 60)
+
+    # 1. Sidecar Status
+    sidecar_data = {}
+    try:
+        with urllib.request.urlopen(f"{SIDECAR_URL}/health", timeout=1.5) as resp:
+            sidecar_data = json.loads(resp.read().decode())
+            print(f"• Sidecar Daemon : 🟢 ONLINE (port 8765)")
+            print(f"• Active Engine  : ⚡ {sidecar_data.get('active_engine', 'unknown')}")
+    except Exception:
+        print(f"• Sidecar Daemon : 🔴 OFFLINE (Run 'jarvis service start' or 'python whisrs_sidecar.py')")
+
+    # 2. GPU Telemetry
+    gpu = get_gpu_info()
+    if gpu.get("available"):
+        print(f"• GPU Hardware   : {gpu['name']}")
+        print(f"• VRAM Usage     : {gpu['vram_used_mb']} MB / {gpu['vram_total_mb']} MB ({gpu['vram_free_mb']} MB free)")
+        print(f"• Temperature    : {gpu['temp_c']}°C")
+
+    # 3. Active Window
+    win = get_active_window()
+    print(f"• Active Window  : [{win.app_category.upper()}] '{win.app_class}' — {win.title[:40]}")
+    print("=" * 60)
+
+def cmd_engines(args):
+    router = EngineRouter()
+    print("=" * 60)
+    print("⚡ JARVIS STT ENGINES")
+    print("=" * 60)
+
+    # Query sidecar for live active engine if available
+    active_key = router.active_engine_key
+    try:
+        with urllib.request.urlopen(f"{SIDECAR_URL}/health", timeout=1.0) as resp:
+            data = json.loads(resp.read().decode())
+            active_key = data.get("active_engine", active_key)
+    except Exception:
+        pass
+
+    for eng in router.list_engines():
+        is_active = (eng["key"] == active_key)
+        icon = "🟢 ACTIVE" if is_active else ("⚪ READY" if eng["is_available"] else "❌ UNAVAILABLE")
+        print(f"• {eng['key']:<12} : {eng['name']:<40} [{icon}]")
+
+    print("\nTo switch active engine: jarvis engine <key>")
+
+def cmd_engine_switch(args):
+    key = args.name.lower().strip()
+    try:
+        req = urllib.request.Request(
+            f"{SIDECAR_URL}/engine/switch?key={key}",
+            data=b"",
+            method="POST"
+        )
+        with urllib.request.urlopen(req, timeout=10.0) as resp:
+            data = json.loads(resp.read().decode())
+            print(f"✅ Successfully switched active engine to: '{key}'")
+    except Exception as e:
+        print(f"⚠️ Could not switch via sidecar daemon ({e}). Switching locally...")
+        router = EngineRouter()
+        router.set_default_engine(key)
+        print(f"✅ Set local default engine to: '{key}'")
+
+def cmd_dictate(args):
+    dictate_script = os.path.join(REPO_DIR, "jarvis-dictate")
+    os.execv(sys.executable, [sys.executable, dictate_script] + sys.argv[2:])
+
+def cmd_assistant(args):
+    assistant_script = os.path.join(REPO_DIR, "jarvis-assistant")
+    os.execv(sys.executable, [sys.executable, assistant_script] + sys.argv[2:])
+
+def cmd_benchmark(args):
+    bench_script = os.path.join(REPO_DIR, "benchmark.py")
+    os.execv(sys.executable, [sys.executable, bench_script] + sys.argv[2:])
+
+def cmd_doctor(args):
+    print_doctor_report()
+
+def cmd_service(args):
+    action = args.action
+    service_name = "whisrs-sidecar.service"
+    if action in ("start", "stop", "restart", "status"):
+        subprocess.run(["systemctl", "--user", action, service_name])
+    else:
+        print(f"Unknown service action: {action}. Available: start, stop, restart, status")
+
+def main():
+    parser = argparse.ArgumentParser(description="JARVIS Voice Master CLI")
+    subparsers = parser.add_subparsers(dest="command", help="Commands")
+
+    subparsers.add_parser("status", help="Show system status and GPU telemetry")
+    subparsers.add_parser("doctor", help="Run comprehensive system diagnostics")
+    subparsers.add_parser("dictate", help="Trigger Mode A (Voice Keyboard / Dictation)")
+    subparsers.add_parser("assistant", help="Trigger Mode B (Assistant Mode)")
+    subparsers.add_parser("engines", help="List available STT engines")
+
+    p_eng = subparsers.add_parser("engine", help="Switch active STT engine (turbo, large-v3, nemotron)")
+    p_eng.add_argument("name", help="Engine key to activate")
+
+    p_bench = subparsers.add_parser("benchmark", help="Run scientific STT benchmark suite")
+    p_bench.add_argument("bench_args", nargs=argparse.REMAINDER, help="Arguments to benchmark.py")
+
+    p_svc = subparsers.add_parser("service", help="Manage background systemd service")
+    p_svc.add_argument("action", choices=["start", "stop", "restart", "status"], help="Action to execute")
+
+    args, unknown = parser.parse_known_args()
+
+    if args.command == "status":
+        cmd_status(args)
+    elif args.command == "doctor":
+        cmd_doctor(args)
+    elif args.command == "dictate":
+        cmd_dictate(args)
+    elif args.command == "assistant":
+        cmd_assistant(args)
+    elif args.command == "engines":
+        cmd_engines(args)
+    elif args.command == "engine":
+        cmd_engine_switch(args)
+    elif args.command == "benchmark":
+        cmd_benchmark(args)
+    elif args.command == "service":
+        cmd_service(args)
+    else:
+        # Default to status if no command specified
+        cmd_status(args)
+
+if __name__ == "__main__":
+    main()

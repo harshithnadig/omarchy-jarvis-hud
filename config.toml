@@ -1,0 +1,25 @@
+# JARVIS Voice Unified Configuration
+
+[dictation]
+default_engine = "turbo"
+preferred_injector = "auto"
+enable_polish = true
+enable_backtracking = true
+dev_mode = true
+hotkey = "SUPER+SPACE"
+
+[assistant]
+hotkey = "SUPER+J"
+voice = "en-US-ChristopherNeural"
+enable_tts = true
+agy_timeout_s = 120
+
+[privacy]
+local_only = true
+save_audio = false
+save_transcripts = false
+private_mode = false
+
+[server]
+host = "127.0.0.1"
+port = 8765

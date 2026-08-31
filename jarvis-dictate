@@ -102,20 +102,40 @@ def transcribe_via_sidecar(pcm_bytes: bytes, engine: str = None, dev_mode: bool 
             if os.path.exists(tmp_path):
                 os.remove(tmp_path)
 
+from core.context.active_window import get_active_window
+from core.context.profiles import get_style_profile_for_window
+from core.context.privacy import PrivacyEngine
+from core.memory.dictionary import PersonalDictionary
+from core.memory.snippets import SnippetManager
+
+privacy_engine = PrivacyEngine()
+dictionary = PersonalDictionary()
+snippet_mgr = SnippetManager()
+
 def main():
-    # Record speech
+    # 1. Capture target window context before speech
+    target_win = get_active_window()
+    profile = get_style_profile_for_window(target_win)
+
+    # 2. Record speech
     pcm_data = record_speech()
     if not pcm_data:
         sys.exit(0)
 
-    # Transcribe on GPU
-    transcribed_text = transcribe_via_sidecar(pcm_data)
+    # 3. Transcribe on GPU
+    transcribed_text = transcribe_via_sidecar(
+        pcm_data,
+        dev_mode=(target_win.app_category == "code")
+    )
     if not transcribed_text or not transcribed_text.strip():
         sys.exit(0)
 
-    # Inject text into active cursor
+    # 4. Inject text directly at cursor in active window
     injector = InjectorRouter()
-    injector.inject_text(transcribed_text)
+    injector.inject_text(
+        transcribed_text,
+        paste_shortcut=profile.paste_shortcut
+    )
 
 if __name__ == "__main__":
     main()
