@@ -22,6 +22,17 @@ class DeveloperTransformEngine:
         r"\b(?:divide equals)\b": "/=",
     }
 
+    KEYWORDS = {
+        r"\b(?:use state)\b": "useState",
+        r"\b(?:use effect)\b": "useEffect",
+        r"\b(?:use ref)\b": "useRef",
+        r"\b(?:use callback)\b": "useCallback",
+        r"\b(?:use memo)\b": "useMemo",
+        r"\b(?:use context)\b": "useContext",
+        r"\b(?:console dot log|console log)\b": "console.log",
+        r"\b(?:print line|println)\b": "println",
+    }
+
     PUNCTUATION_SYMBOLS = {
         r"\b(?:open paren|open parenthesis|left paren)\b": "(",
         r"\b(?:close paren|close parenthesis|right paren)\b": ")",
@@ -31,6 +42,9 @@ class DeveloperTransformEngine:
         r"\b(?:close brace|close curly brace|right brace)\b": "}",
         r"\b(?:semicolon)\b": ";",
         r"\b(?:backtick|backticks)\b": "`",
+        r"\b(?:double quotes|double quote)\b": '"',
+        r"\b(?:single quote)\b": "'",
+        r"\b(?<=[a-zA-Z0-9_])\s+dot\s+(?=[a-zA-Z0-9_])\b": ".",
     }
 
     @staticmethod
@@ -113,11 +127,15 @@ class DeveloperTransformEngine:
         for pat, sym in cls.OPERATORS.items():
             cleaned = re.sub(pat, sym, cleaned, flags=re.IGNORECASE)
 
-        # 2. Spoken symbols
+        # 2. Keywords
+        for pat, kw in cls.KEYWORDS.items():
+            cleaned = re.sub(pat, kw, cleaned, flags=re.IGNORECASE)
+
+        # 3. Spoken symbols
         for pat, sym in cls.PUNCTUATION_SYMBOLS.items():
             cleaned = re.sub(pat, sym, cleaned, flags=re.IGNORECASE)
 
-        # 3. Casing transforms
+        # 4. Casing transforms
         if enable_casing:
             cleaned = cls.apply_casing_transforms(cleaned)
 

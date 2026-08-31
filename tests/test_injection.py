@@ -30,3 +30,11 @@ def test_injector_router_unknown():
     router = InjectorRouter()
     with pytest.raises(TextInjectionError):
         router.get_injector("non_existent_method")
+
+def test_atspi_unlinked_truthful_failure():
+    from core.inject.atspi import AtspiInjector
+    inj = AtspiInjector()
+    # If Python AT-SPI bindings are not available, it must not report availability
+    if not inj.is_available():
+        with pytest.raises(TextInjectionError):
+            inj.inject("test text")

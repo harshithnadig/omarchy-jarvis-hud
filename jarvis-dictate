@@ -78,7 +78,10 @@ def main():
     # 1. Inspect target window context & privacy boundary
     target_win = get_active_window()
     privacy = PrivacyEngine()
-    profile = get_style_profile_for_window(target_win)
+    is_sensitive = privacy.is_sensitive(target_win)
+    allow_context = privacy.should_capture_context(target_win)
+
+    profile = get_style_profile_for_window(target_win) if allow_context else get_style_profile_for_window(None)
     dictionary = PersonalDictionary()
     snippet_mgr = SnippetManager()
 
@@ -100,13 +103,14 @@ def main():
     # 4b. Context-aware deterministic polish with backtracking & dev transforms
     polished = TextPolisher.clean_deterministic(
         expanded,
-        dev_mode=(target_win.app_category == "code"),
+        dev_mode=(target_win.app_category == "code") if allow_context else False,
         enable_backtracking=True,
         profile=profile
     )
 
-    # 4c. Personal technical dictionary substitution
-    final_text = dictionary.apply_dictionary(polished, app_class=target_win.app_class)
+    # 4c. Personal technical dictionary substitution (anonymize app_class if sensitive)
+    app_scope = target_win.app_class if allow_context else None
+    final_text = dictionary.apply_dictionary(polished, app_class=app_scope)
 
     # 5. Inject text directly at active cursor
     injector = InjectorRouter()

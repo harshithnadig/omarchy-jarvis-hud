@@ -14,12 +14,17 @@ CORRECTION_PATTERNS = [
     (r"\b(\w+)[,.\s]+(?:i mean)[,.\s]+(\w+)\b", r"\2"),
 ]
 
+PREPOSITIONS = {'for', 'to', 'at', 'on', 'in', 'named', 'called', 'with', 'from', 'as', 'method', 'function', 'variable', 'const', 'let'}
+
+NON_CORRECTION_NO_WORDS = {'problem', 'way', 'doubt', 'idea', 'worries', 'longer', 'matter', 'more', 'less', 'one', 'body', 'thanks'}
+
 class BacktrackingEngine:
     """
     Applies self-correction and verbal backtracking rules to transcripts.
-    Corrects phrases like:
-    - 'Book it for Tuesday... actually Wednesday.' -> 'Book it for Wednesday.'
-    - 'Send it to Rahul - no, Rohan.' -> 'Send it to Rohan.'
+    Handles single tokens, multi-word clauses, and preposition-anchored corrections:
+    - 'Schedule the deployment for Tuesday actually Wednesday morning.' -> 'Schedule the deployment for Wednesday morning.'
+    - 'Let us name the method get_user_data, I mean fetch_user_data.' -> 'Let us name the method fetch_user_data.'
+    - 'Send it to Rahul no Rohan.' -> 'Send it to Rohan.'
     - 'We need Python, scratch that, Rust.' -> 'We need Rust.'
     """
 
@@ -28,57 +33,52 @@ class BacktrackingEngine:
         if not text or not text.strip():
             return ""
 
-        cleaned = text
+        cleaned = text.strip()
 
         # 1. Handle explicit 'scratch that' / 'cancel that'
-        # e.g., "Create a file named foo.py, scratch that, bar.py"
         m_scratch = re.search(r"^(.*?)(?:,\s*|\s+)\b(?:scratch that|cancel that)\b[,\s]*(.*)$", cleaned, flags=re.IGNORECASE)
         if m_scratch:
-            pre_clause = m_scratch.group(1).strip()
-            post_clause = m_scratch.group(2).strip()
-
-            # If post_clause is a single token/replacement, find matching token in pre_clause
-            post_words = post_clause.split()
-            if len(post_words) == 1 and pre_clause:
-                pre_words = pre_clause.split()
-                # Replace the last word of pre_clause with post_clause
+            pre = m_scratch.group(1).strip()
+            post = m_scratch.group(2).strip()
+            if not pre:
+                return post
+            post_words = post.split()
+            pre_words = pre.split()
+            if len(post_words) == 1 and pre_words:
                 pre_words[-1] = post_words[0]
-                cleaned = " ".join(pre_words)
-            else:
-                # Replace the entire pre_clause if post_clause is a complete sentence or replace last clause
-                cleaned = post_clause if len(post_words) > 3 else f"{pre_clause} {post_clause}"
+                return " ".join(pre_words)
+            return post if len(post_words) > 3 else f"{pre} {post}"
 
-        # 2. Handle "X actually Y", "X no, Y", "X I mean Y"
-        # Match single-word substitutions: "Tuesday, actually Wednesday" -> "Wednesday"
-        cleaned = re.sub(
-            r"\b(\w+)[,.\s—\-]+(?:actually|rather)[,\s]+(\w+)\b",
-            r"\2",
-            cleaned,
-            flags=re.IGNORECASE
-        )
+        # 2. Cues: 'I mean', 'actually', 'rather', 'no'
+        cue_match = re.search(r"[,.\s—\-]+(?:\b(?:i mean|actually|rather|no)\b)[,\s]*", cleaned, flags=re.IGNORECASE)
+        if not cue_match:
+            return cleaned
 
-        # "X, no, Y" or "X - no, Y" (require comma or dash before 'no' and ensure word1 is not 'no')
-        def replace_no_cue(m):
-            w1 = m.group(1)
-            w2 = m.group(2)
-            if w1.lower() == "no" or w2.lower() == "no":
-                return m.group(0)  # Preserve "no no"
-            return w2
+        idx = cue_match.start()
+        end_idx = cue_match.end()
 
-        cleaned = re.sub(
-            r"\b(\w+)[,\s—\-]+(?:no)[,\s]+(\w+)\b",
-            replace_no_cue,
-            cleaned,
-            flags=re.IGNORECASE
-        )
+        pre = cleaned[:idx].rstrip(",.-— ")
+        post = cleaned[end_idx:].lstrip(",.-— ")
 
-        cleaned = re.sub(
-            r"\b(\w+)[,.\s—\-]+(?:i mean)[,\s]+(\w+)\b",
-            r"\2",
-            cleaned,
-            flags=re.IGNORECASE
-        )
+        pre_words = pre.split()
+        post_words = post.split()
 
-        # Cleanup whitespace
-        cleaned = re.sub(r"\s+", " ", cleaned).strip()
-        return cleaned
+        if not pre_words or not post_words:
+            return cleaned
+
+        # Avoid triggering on intentional 'no no' or idioms like 'no problem'
+        if post_words[0].lower() in NON_CORRECTION_NO_WORDS:
+            return cleaned
+        if pre_words[-1].lower() == "no":
+            return cleaned
+
+        # Check if there is a preposition or anchor noun in the last few words of pre
+        for i in range(len(pre_words) - 1, max(-1, len(pre_words) - 5), -1):
+            if pre_words[i].lower() in PREPOSITIONS and (not post_words or post_words[0].lower() not in PREPOSITIONS):
+                result = " ".join(pre_words[:i+1]) + " " + post
+                return re.sub(r"\s+", " ", result).strip()
+
+        # Default fallback: replace last min(len(post_words), len(pre_words)) words
+        n = min(len(post_words), len(pre_words))
+        result = " ".join(pre_words[:-n]) + " " + post
+        return re.sub(r"\s+", " ", result).strip()

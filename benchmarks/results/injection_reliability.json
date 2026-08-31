@@ -1,0 +1,26 @@
+{
+  "timestamp": "2026-08-31T11:48:37.214697",
+  "target": {
+    "class": "org.omarchy.agent",
+    "title": "foot",
+    "category": "generic"
+  },
+  "results": {
+    "clipboard": {
+      "available": true,
+      "iterations": 30,
+      "successes": 30,
+      "success_rate_pct": 100.0,
+      "latency_p50_ms": 69.74,
+      "latency_p95_ms": 120.05
+    },
+    "wtype": {
+      "available": true,
+      "iterations": 20,
+      "successes": 20,
+      "success_rate_pct": 100.0,
+      "latency_p50_ms": 11.03,
+      "latency_p95_ms": 21.12
+    }
+  }
+}

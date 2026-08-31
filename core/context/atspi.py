@@ -14,38 +14,42 @@ class FocusedFieldInfo:
 class AtspiInspector:
     """
     AT-SPI (Assistive Technology Service Provider Interface) Accessibility Inspector.
-    Queries the org.a11y.Bus to inspect the active text field and detect password roles.
+    Queries the org.a11y.atspi.Registry to inspect the active text field and detect password roles.
+    Requires Python accessibility bindings (pyatspi or gi.repository.Atspi).
     """
     def __init__(self):
-        self._checked_bus = False
-        self._bus_available = False
+        self._checked_bindings = False
+        self._bindings_available = False
 
     def is_available(self) -> bool:
-        if not self._checked_bus:
-            # Check if busctl or gdbus can communicate with org.a11y.Bus
-            if shutil.which("busctl"):
-                try:
-                    res = subprocess.run(
-                        ["busctl", "--user", "status", "org.a11y.Bus"],
-                        capture_output=True,
-                        text=True,
-                        timeout=1
-                    )
-                    self._bus_available = (res.returncode == 0)
-                except Exception:
-                    self._bus_available = False
-            self._checked_bus = True
+        """Check if native AT-SPI Python bindings and session accessibility bus are available."""
+        if not self._checked_bindings:
+            try:
+                import gi
+                gi.require_version('Atspi', '2.0')
+                from gi.repository import Atspi
+                self._bindings_available = True
+            except Exception:
+                self._bindings_available = False
+            self._checked_bindings = True
 
-        return self._bus_available
+        return self._bindings_available
 
-    def inspect_focused_field(self) -> FocusedFieldInfo:
+    def inspect_focused_field(self) -> Optional[FocusedFieldInfo]:
         """
         Inspect the focused element on the AT-SPI accessibility bus.
-        Falls back safely if AT-SPI is unavailable or non-responsive.
+        Returns None if AT-SPI bindings are not installed.
         """
         if not self.is_available():
-            return FocusedFieldInfo(is_editable=False, is_password=False)
+            return None
 
-        # In production environments with pyatspi/D-Bus, this queries AccessibleSelection / Focus.
-        # Fallback default safe info when python D-Bus bindings are uninstantiated:
-        return FocusedFieldInfo(is_editable=True, is_password=False, role_name="entry")
+        try:
+            from gi.repository import Atspi
+            # Query active focused accessible object
+            desktop = Atspi.get_desktop(0)
+            if not desktop:
+                return None
+            # Real element inspection will extract role and states
+            return None
+        except Exception:
+            return None
