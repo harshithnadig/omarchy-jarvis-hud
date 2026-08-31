@@ -1,11 +1,17 @@
 {
-  "timestamp": "2026-08-31T11:59:38.467020",
-  "target": "Foot / Wayland Native Window",
-  "benchmark": {
+  "timestamp": "2026-08-31T12:05:16.848581",
+  "wtype": {
     "iterations": 10,
     "successes": 10,
     "success_rate_pct": 100.0,
-    "latency_p50_ms": 565.2,
-    "latency_p95_ms": 613.51
+    "latency_p50_ms": 489.25,
+    "latency_p95_ms": 546.3
+  },
+  "clipboard": {
+    "iterations": 20,
+    "successes": 20,
+    "success_rate_pct": 100.0,
+    "latency_p50_ms": 33.88,
+    "latency_p95_ms": 35.93
   }
 }

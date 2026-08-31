@@ -22,6 +22,8 @@ def test_nemotron_unavailable_behavior():
             nem.load_model()
         with pytest.raises((EngineUnavailableError, InferenceError)):
             nem.transcribe_file("/tmp/non_existent.wav")
+        with pytest.raises((EngineUnavailableError, InferenceError)):
+            nem.streaming_step(b"\x00\x00" * 2560)
 
 def test_whisper_missing_file():
     whisper = WhisperEngine(model_id="large-v3-turbo")

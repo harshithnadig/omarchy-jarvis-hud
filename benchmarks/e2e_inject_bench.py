@@ -77,25 +77,77 @@ def run_e2e_wtype_benchmark(iterations: int = 10) -> dict:
         "latency_p95_ms": round(p95, 2) if p95 else None,
     }
 
+def run_e2e_clipboard_benchmark(iterations: int = 20) -> dict:
+    """Run real E2E clipboard injection & readback verification benchmark."""
+    successes = 0
+    latencies = []
+
+    print(f"\n🚀 Running {iterations} E2E clipboard injection tests...")
+
+    # Save original user clipboard
+    try:
+        orig = subprocess.run(["wl-paste", "--no-newline"], capture_output=True, text=True, timeout=1).stdout
+    except Exception:
+        orig = ""
+
+    for i in range(iterations):
+        token = f"JARVIS_E2E_CLIP_{uuid.uuid4().hex[:6]}"
+        t0 = time.perf_counter()
+
+        try:
+            subprocess.run(["wl-copy"], input=token, text=True, check=True, timeout=1)
+            received = subprocess.run(["wl-paste", "--no-newline"], capture_output=True, text=True, timeout=1).stdout
+            lat = (time.perf_counter() - t0) * 1000.0
+
+            if received == token:
+                successes += 1
+                latencies.append(lat)
+                print(f"  • Iteration {i+1:02d}: ✅ EXACT MATCH ({lat:.1f}ms)")
+            else:
+                print(f"  • Iteration {i+1:02d}: ❌ MISMATCH ('{received}' != '{token}')")
+        except Exception as e:
+            print(f"  • Iteration {i+1:02d}: ❌ EXCEPTION ({e})")
+
+    # Restore original clipboard
+    try:
+        if orig:
+            subprocess.run(["wl-copy"], input=orig, text=True, timeout=1)
+    except Exception:
+        pass
+
+    latencies.sort()
+    p50 = latencies[len(latencies) // 2] if latencies else None
+    p95 = latencies[int(len(latencies) * 0.95)] if latencies else None
+
+    return {
+        "iterations": iterations,
+        "successes": successes,
+        "success_rate_pct": round((successes / iterations) * 100.0, 1),
+        "latency_p50_ms": round(p50, 2) if p50 else None,
+        "latency_p95_ms": round(p95, 2) if p95 else None,
+    }
+
 def main():
     print("=" * 70)
-    print("🎯 REAL END-TO-END APPLICATION TEXTBOX INJECTION BENCHMARK")
-    print("• Target: Wayland / Hyprland Real Native Application Window")
+    print("🎯 REAL END-TO-END MULTI-BACKEND INJECTION COMPATIBILITY BENCHMARK")
+    print("• Target: Wayland Native Compositor (Hyprland)")
     print("=" * 70)
 
-    results = run_e2e_wtype_benchmark(iterations=10)
+    wtype_results = run_e2e_wtype_benchmark(iterations=10)
+    clip_results = run_e2e_clipboard_benchmark(iterations=20)
 
     print("\n" + "=" * 70)
-    print(f"📊 SUMMARY: {results['success_rate_pct']}% Insertion Reliability ({results['successes']}/{results['iterations']})")
-    print(f"• Latency p50: {results['latency_p50_ms']} ms | p95: {results['latency_p95_ms']} ms")
+    print("📊 INJECTION COMPATIBILITY RESULTS:")
+    print(f"• wtype (Native Window Typing) : {wtype_results['success_rate_pct']}% ({wtype_results['successes']}/{wtype_results['iterations']}) | p50: {wtype_results['latency_p50_ms']}ms | p95: {wtype_results['latency_p95_ms']}ms")
+    print(f"• Safe Clipboard (wl-paste)    : {clip_results['success_rate_pct']}% ({clip_results['successes']}/{clip_results['iterations']}) | p50: {clip_results['latency_p50_ms']}ms | p95: {clip_results['latency_p95_ms']}ms")
     print("=" * 70)
 
     out_file = os.path.join(REPO_DIR, "benchmarks/results/e2e_injection_results.json")
     with open(out_file, "w", encoding="utf-8") as f:
         json.dump({
             "timestamp": datetime.now().isoformat(),
-            "target": "Foot / Wayland Native Window",
-            "benchmark": results
+            "wtype": wtype_results,
+            "clipboard": clip_results
         }, f, indent=2)
     print(f"📁 Detailed report saved to: {out_file}")
 

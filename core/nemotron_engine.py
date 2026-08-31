@@ -102,3 +102,41 @@ class NemotronEngine(STTEngine):
             engine_name=self.name,
             metadata={"model_id": self.model_id}
         )
+
+    def streaming_step(self, pcm_chunk: bytes, cache_state: Optional[dict] = None) -> tuple[str, dict]:
+        """
+        Execute an incremental cache-aware streaming inference step on a 160ms PCM chunk.
+        Reuses encoder cache tensors to eliminate quadratic O(N^2) buffer recomputation.
+        """
+        if not self.is_available():
+            raise EngineUnavailableError("NVIDIA NeMo toolkit is not installed.")
+
+        if not self.is_loaded or self.model is None:
+            self.load_model()
+
+        import numpy as np
+        import torch
+
+        # Normalize 16-bit PCM to float32 [-1.0, 1.0]
+        samples = np.frombuffer(pcm_chunk, dtype=np.int16).astype(np.float32) / 32768.0
+        audio_tensor = torch.from_numpy(samples).unsqueeze(0)
+        if torch.cuda.is_available() and self.is_loaded:
+            audio_tensor = audio_tensor.cuda()
+
+        state = cache_state or {}
+        text = ""
+
+        # NeMo Cache-Aware Streaming Execution
+        try:
+            if hasattr(self.model, "streaming_step"):
+                text, new_cache = self.model.streaming_step(audio_tensor, state)
+                return text, new_cache
+            elif hasattr(self.model, "transcribe"):
+                # Fallback step for non-streaming checkpoints
+                res = self.model.transcribe([audio_tensor.cpu().numpy()])[0]
+                text = res.text if hasattr(res, "text") else str(res)
+                return text, state
+        except Exception as e:
+            raise InferenceError(f"Nemotron streaming step failed: {e}") from e
+
+        return text, state
