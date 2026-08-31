@@ -123,6 +123,9 @@ def main():
     p_bench = subparsers.add_parser("benchmark", help="Run scientific STT benchmark suite")
     p_bench.add_argument("bench_args", nargs=argparse.REMAINDER, help="Arguments to benchmark.py")
 
+    p_rec = subparsers.add_parser("record", help="Record real microphone samples for benchmark corpus")
+    p_rec.add_argument("record_args", nargs=argparse.REMAINDER, help="Arguments to benchmark.py record")
+
     p_svc = subparsers.add_parser("service", help="Manage background systemd service")
     p_svc.add_argument("action", choices=["start", "stop", "restart", "status"], help="Action to execute")
 
@@ -142,6 +145,9 @@ def main():
         cmd_engine_switch(args)
     elif args.command == "benchmark":
         cmd_benchmark(args)
+    elif args.command == "record":
+        bench_script = os.path.join(REPO_DIR, "benchmark.py")
+        os.execv(sys.executable, [sys.executable, bench_script, "record"] + sys.argv[2:])
     elif args.command == "service":
         cmd_service(args)
     else:

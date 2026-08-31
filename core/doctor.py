@@ -41,13 +41,20 @@ def run_diagnostics() -> Dict[str, Any]:
     except Exception as e:
         add_check("CUDA", "CTranslate2 CUDA Compute Types", False, str(e))
 
-    # 2. Audio Capture
+    # 2. Audio Capture & VAD
     try:
         devices = sd.query_devices()
         default_in = sd.query_devices(kind='input')
         add_check("Audio", "Microphone Input Device", True, f"{default_in['name']} (Sample Rate: {default_in['default_samplerate']}Hz)")
     except Exception as e:
         add_check("Audio", "Microphone Input Device", False, str(e))
+
+    from core.audio.vad import SileroVAD
+    vad = SileroVAD()
+    if vad.backend == "silero":
+        add_check("Audio", "Voice Activity Detector (VAD)", True, "Silero Neural VAD (High precision)")
+    else:
+        add_check("Audio", "Voice Activity Detector (VAD)", True, "RMS Energy Fallback (Lightweight mode)")
 
     # 3. Wayland & Compositor
     is_hypr = shutil.which("hyprctl") is not None

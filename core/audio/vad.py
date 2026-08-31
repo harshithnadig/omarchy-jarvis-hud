@@ -19,6 +19,8 @@ class SileroVAD:
             self._model = None
             self._is_silero = False
 
+        self.backend: str = "silero" if self._is_silero else "rms_fallback"
+
     def get_speech_probability(self, chunk_float32: np.ndarray) -> float:
         """Calculate speech probability for a single audio frame (512 samples @ 16kHz)."""
         if self._is_silero and self._model is not None:

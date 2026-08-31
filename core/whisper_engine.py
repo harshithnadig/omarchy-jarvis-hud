@@ -199,3 +199,42 @@ class WhisperEngine(STTEngine):
                 "device": self.device
             }
         )
+
+    def streaming_step(self, pcm_chunk: bytes, cache_state: Optional[dict] = None) -> tuple[str, dict]:
+        """
+        Incremental streaming decode step on a 160ms PCM chunk without saving temporary WAV files to disk.
+        """
+        if not self.is_available():
+            raise EngineUnavailableError("faster-whisper is not installed.")
+
+        if not self.is_loaded or self.model is None:
+            self.load_model()
+
+        import numpy as np
+
+        state = cache_state or {}
+        samples = np.frombuffer(pcm_chunk, dtype=np.int16).astype(np.float32) / 32768.0
+
+        if "accumulated_samples" not in state:
+            state["accumulated_samples"] = []
+        state["accumulated_samples"].append(samples)
+
+        # Decode when at least 0.4s (6400 samples) accumulated or on each step after 0.5s
+        all_samples = np.concatenate(state["accumulated_samples"])
+        text = state.get("last_text", "")
+
+        if len(all_samples) >= 6400:
+            try:
+                segments, _ = self.model.transcribe(
+                    all_samples,
+                    beam_size=1,
+                    temperature=0.0,
+                    condition_on_previous_text=False,
+                    vad_filter=False
+                )
+                text = " ".join(s.text.strip() for s in segments).strip()
+                state["last_text"] = text
+            except Exception:
+                pass
+
+        return text, state

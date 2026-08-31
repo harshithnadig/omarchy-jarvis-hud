@@ -1,0 +1,160 @@
+{
+  "timestamp": "2026-08-31T12:16:33.428041",
+  "engine": "whisper-large-v3-turbo",
+  "audio_file": "stream_bench_target.wav",
+  "total_duration_s": 5.02,
+  "total_chunks": 32,
+  "first_partial_time_ms": 3385.7,
+  "per_chunk_p50_ms": 476.67,
+  "per_chunk_p95_ms": 676.59,
+  "finalize_latency_ms": 0.01,
+  "rtf": 3.323,
+  "partials": [
+    {
+      "chunk_idx": 3,
+      "elapsed_ms": 3385.7,
+      "partial_text": "Hello"
+    },
+    {
+      "chunk_idx": 4,
+      "elapsed_ms": 3839.7,
+      "partial_text": "Hello."
+    },
+    {
+      "chunk_idx": 5,
+      "elapsed_ms": 4292.1,
+      "partial_text": "Hello."
+    },
+    {
+      "chunk_idx": 6,
+      "elapsed_ms": 4748.6,
+      "partial_text": "Hello, this is"
+    },
+    {
+      "chunk_idx": 7,
+      "elapsed_ms": 5204.7,
+      "partial_text": "Hello, this is"
+    },
+    {
+      "chunk_idx": 8,
+      "elapsed_ms": 5662.5,
+      "partial_text": "Hello, this is a"
+    },
+    {
+      "chunk_idx": 9,
+      "elapsed_ms": 6122.5,
+      "partial_text": "Hello, this is a clear"
+    },
+    {
+      "chunk_idx": 10,
+      "elapsed_ms": 6583.2,
+      "partial_text": "Hello, this is a clean"
+    },
+    {
+      "chunk_idx": 11,
+      "elapsed_ms": 7045.9,
+      "partial_text": "Hello, this is a clean tech"
+    },
+    {
+      "chunk_idx": 12,
+      "elapsed_ms": 7509.9,
+      "partial_text": "Hello, this is a clean test."
+    },
+    {
+      "chunk_idx": 13,
+      "elapsed_ms": 7979.4,
+      "partial_text": "Hello, this is a clean test of the"
+    },
+    {
+      "chunk_idx": 14,
+      "elapsed_ms": 8453.0,
+      "partial_text": "Hello, this is a clean test of the auto-"
+    },
+    {
+      "chunk_idx": 15,
+      "elapsed_ms": 8929.4,
+      "partial_text": "Hello, this is a clean test of the off-"
+    },
+    {
+      "chunk_idx": 16,
+      "elapsed_ms": 9401.0,
+      "partial_text": "Hello, this is a clean test of the offline"
+    },
+    {
+      "chunk_idx": 17,
+      "elapsed_ms": 9873.7,
+      "partial_text": "Hello, this is a clean test of the offline"
+    },
+    {
+      "chunk_idx": 18,
+      "elapsed_ms": 10355.9,
+      "partial_text": "Hello, this is a clean test of the offline voice."
+    },
+    {
+      "chunk_idx": 19,
+      "elapsed_ms": 10839.6,
+      "partial_text": "Hello, this is a clean test of the offline voice."
+    },
+    {
+      "chunk_idx": 20,
+      "elapsed_ms": 11316.3,
+      "partial_text": "Hello, this is a clean test of the offline voice translation."
+    },
+    {
+      "chunk_idx": 21,
+      "elapsed_ms": 11808.5,
+      "partial_text": "Hello, this is a clean test of the offline voice transcription."
+    },
+    {
+      "chunk_idx": 22,
+      "elapsed_ms": 12290.6,
+      "partial_text": "Hello, this is a clean test of the offline voice transcription."
+    },
+    {
+      "chunk_idx": 23,
+      "elapsed_ms": 12780.4,
+      "partial_text": "Hello, this is a clean test of the offline voice transcription."
+    },
+    {
+      "chunk_idx": 24,
+      "elapsed_ms": 13269.1,
+      "partial_text": "Hello, this is a clean test of the offline voice transcription system."
+    },
+    {
+      "chunk_idx": 25,
+      "elapsed_ms": 13759.4,
+      "partial_text": "Hello, this is a clean test of the offline voice transcription system."
+    },
+    {
+      "chunk_idx": 26,
+      "elapsed_ms": 14245.8,
+      "partial_text": "Hello, this is a clean test of the offline voice transcription system."
+    },
+    {
+      "chunk_idx": 27,
+      "elapsed_ms": 14731.2,
+      "partial_text": "Hello, this is a clean test of the offline voice transcription system."
+    },
+    {
+      "chunk_idx": 28,
+      "elapsed_ms": 15214.4,
+      "partial_text": "Hello, this is a clean test of the offline voice transcription system."
+    },
+    {
+      "chunk_idx": 29,
+      "elapsed_ms": 15700.4,
+      "partial_text": "Hello, this is a clean test of the offline voice transcription system."
+    },
+    {
+      "chunk_idx": 30,
+      "elapsed_ms": 16186.3,
+      "partial_text": "Hello, this is a clean test of the offline voice transcription system."
+    },
+    {
+      "chunk_idx": 31,
+      "elapsed_ms": 16668.8,
+      "partial_text": "Hello, this is a clean test of the offline voice transcription system."
+    }
+  ],
+  "final_text": "Hello, this is a clean test of the offline voice transcription system."
+}

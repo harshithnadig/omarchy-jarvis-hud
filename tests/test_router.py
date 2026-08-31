@@ -40,11 +40,17 @@ def test_router_list_engines():
         assert "is_loaded" in e
 
 def test_route_engine_policy():
+    from unittest.mock import patch
     router = EngineRouter(default_engine="turbo")
-    # Default short utterance
-    assert router.route_engine(audio_duration_s=3.0, language="en") == "turbo"
-    # Explicit max accuracy requested
-    assert router.route_engine(require_max_accuracy=True) == "large-v3"
-    # Long non-English dictation
-    assert router.route_engine(audio_duration_s=25.0, language="es") == "large-v3"
+
+    # When large-v3 is available
+    with patch.object(router._engines["large-v3"], "is_available", return_value=True):
+        assert router.route_engine(audio_duration_s=3.0, language="en") == "turbo"
+        assert router.route_engine(require_max_accuracy=True) == "large-v3"
+        assert router.route_engine(audio_duration_s=25.0, language="es") == "large-v3"
+
+    # When large-v3 is unavailable (graceful fallback)
+    with patch.object(router._engines["large-v3"], "is_available", return_value=False):
+        assert router.route_engine(require_max_accuracy=True) == "turbo"
+        assert router.route_engine(audio_duration_s=25.0, language="es") == "turbo"
 
