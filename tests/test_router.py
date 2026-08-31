@@ -38,3 +38,13 @@ def test_router_list_engines():
     for e in engines:
         assert "is_available" in e
         assert "is_loaded" in e
+
+def test_route_engine_policy():
+    router = EngineRouter(default_engine="turbo")
+    # Default short utterance
+    assert router.route_engine(audio_duration_s=3.0, language="en") == "turbo"
+    # Explicit max accuracy requested
+    assert router.route_engine(require_max_accuracy=True) == "large-v3"
+    # Long non-English dictation
+    assert router.route_engine(audio_duration_s=25.0, language="es") == "large-v3"
+

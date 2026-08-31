@@ -74,6 +74,27 @@ class EngineRouter:
             **kwargs
         )
 
+    def route_engine(
+        self,
+        audio_duration_s: float = 0.0,
+        language: Optional[str] = None,
+        app_category: str = "generic",
+        require_max_accuracy: bool = False
+    ) -> str:
+        """
+        Intelligent STT Routing Policy (Phase 9):
+        - Default / Low Latency: 'turbo' (576ms latency, 0.1x RTF, low VRAM footprint)
+        - Heavy Multilingual / Max Accuracy: 'large-v3' (when explicitly requested or long non-English dictation)
+        """
+        if require_max_accuracy:
+            return "large-v3" if self._engines["large-v3"].is_available() else self.default_engine_key
+
+        if language and language.lower() not in ("en", "auto") and audio_duration_s > 15.0:
+            if self._engines["large-v3"].is_available():
+                return "large-v3"
+
+        return self.default_engine_key
+
     def start_streaming_session(
         self,
         engine_key: Optional[str] = None,
