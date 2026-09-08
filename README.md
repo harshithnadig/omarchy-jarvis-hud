@@ -1,5 +1,43 @@
 # JARVIS Voice / Omni Jarvis HUD
 
+## Marketplace installation and review notes
+
+This section describes the current implementation and takes precedence over broader feature claims below.
+
+### Requirements and dependencies
+
+Requires Omarchy Quattro's plugin-capable shell, Qt 6 / QtQuick / QtQuick.Controls / QtQuick.Layouts, Quickshell and Omarchy qs.Commons / qs.Ui modules. This is not a standalone QML application.
+
+Bash, GNU coreutils, awk, sed, procps-ng and findutils; Linux /proc and /sys. Optional nvidia-smi for GPU readings, powerprofilesctl for power profiles and the Omarchy notification helper. The separate voice application declares Python dependencies and GPU extras in pyproject.toml; see docs/MASTER_ROADMAP.md for its audio/model setup. Installing the bar plugin does not install or start the voice application.
+
+### Install
+
+Review the unsandboxed plugin source, then run in an Omarchy Quattro session:
+
+    omarchy plugin add https://github.com/harshithnadig/omarchy-jarvis-hud.git --enable
+
+Use the Omarchy bar editor to place the widget if necessary. Installation fetches upstream HEAD, not a pinned marketplace-reviewed snapshot.
+
+### Remove
+
+    omarchy plugin remove harshith.jarvis-hud
+
+### Permissions and persistent state
+
+Reads hardware telemetry. Overdrive and Eco request power-profile changes on explicit clicks. Removal does not restore a previously selected power profile or remove separately installed voice services/models.
+
+### Current limitations
+
+The HUD has initial/fallback display values when telemetry is unavailable. Purge invokes sync; it does not drop kernel caches. Notifications do not verify whether power-profile changes succeeded. Historical voice benchmarks were not rerun for this submission.
+
+Repository structure and documentation were reviewed for resubmission. This is not a fresh end-to-end runtime test or security audit.
+
+### License
+
+MIT; see LICENSE. External applications, models and dependencies retain their own licenses.
+
+---
+
 An offline-first, GPU-accelerated voice dictation keyboard and AI assistant system for Linux/Wayland (Hyprland / Omarchy).
 
 ---
