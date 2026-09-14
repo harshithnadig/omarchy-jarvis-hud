@@ -17,13 +17,14 @@ class AntigravityConnector:
 
         agent_prompt = (
             "You are JARVIS, an AI assistant on Omarchy Linux. "
-            "Execute the user request and provide a concise, spoken-friendly answer (1-3 sentences max):\n\n"
+            "Provide a concise, conversational answer (1-3 sentences max). "
+            "Do NOT execute any unconfirmed system modifications without explicit user approval:\n\n"
             f"{prompt}"
         )
 
         try:
             res = subprocess.run(
-                ["agy", "--dangerously-skip-permissions", "-p", agent_prompt],
+                ["agy", "-p", agent_prompt],
                 capture_output=True,
                 text=True,
                 timeout=timeout_s
