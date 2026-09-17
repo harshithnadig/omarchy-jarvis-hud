@@ -86,13 +86,13 @@
   {
     "id": "indian_01_tech",
     "audio_path": "indian_01_tech.mp3",
-    "reference_text": "Please deploy the latest build on the Bangalore staging server and monitor the latency.",
-    "category": "indian_english",
+    "reference_text": "Please deploy the latest build on the cloud staging server and monitor the latency.",
+    "category": "accented_english",
     "language": "en",
     "duration_s": 0.0,
     "tags": [
       "accent",
-      "bangalore"
+      "staging"
     ]
   },
   {

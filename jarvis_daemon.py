@@ -136,7 +136,7 @@ def handle_quick_actions(query):
 
     # Self-Status & Greetings
     if q in ["hey", "hello", "hi", "how are you", "what are you doing", "who are you"]:
-        return "I am Jarvis, your autonomous AI assistant. All neural pipelines on your RTX 4060 are active and I am listening."
+        return "I am Jarvis, your autonomous AI assistant. All neural pipelines are active and I am listening."
 
     # Date & Day
     if "date" in q or "today's date" in q or "what day is it" in q or q in ["today", "day"]:
@@ -148,27 +148,35 @@ def handle_quick_actions(query):
 
     # Battery
     if "battery" in q or "power level" in q:
-        try:
-            with open("/sys/class/power_supply/BAT0/capacity") as f:
-                cap = f.read().strip()
-            with open("/sys/class/power_supply/BAT0/status") as f:
-                stat = f.read().strip()
-            return f"Battery is at {cap}% and currently {stat}."
-        except Exception:
-            pass
+        import glob
+        for bpath in glob.glob("/sys/class/power_supply/BAT*") + glob.glob("/sys/class/power_supply/*battery*") + glob.glob("/sys/class/power_supply/*"):
+            try:
+                with open(f"{bpath}/capacity") as f:
+                    cap = f.read().strip()
+                with open(f"{bpath}/status") as f:
+                    stat = f.read().strip()
+                return f"Battery is at {cap}% and currently {stat}."
+            except Exception:
+                continue
 
     # Weather
     if "weather" in q:
-        city = "Bangalore"
         m = re.search(r"weather (?:in|for|at)?\s*([a-zA-Z\s]+)", q)
         if m and m.group(1).strip() and m.group(1).strip() not in ["today", "now", "outside", "like"]:
             city = m.group(1).strip().replace(" today", "").replace(" now", "").strip()
+            url = f"https://wttr.in/{urllib.parse.quote(city)}?format=%C,+%t"
+            prefix = f"In {city.title()}"
+        else:
+            url = "https://wttr.in/?format=%l:+%C,+%t"
+            prefix = "Locally"
         try:
-            req = urllib.request.Request(f"https://wttr.in/{urllib.parse.quote(city)}?format=%C,+%t", headers={"User-Agent": "curl/8.0"})
+            req = urllib.request.Request(url, headers={"User-Agent": "curl/8.0"})
             with urllib.request.urlopen(req, timeout=3) as resp:
                 w_text = resp.read().decode().strip()
                 if w_text:
-                    return f"In {city.title()}, the weather is currently {w_text}."
+                    if prefix == "Locally":
+                        return f"Local weather: {w_text}."
+                    return f"{prefix}, the weather is currently {w_text}."
         except Exception:
             pass
 

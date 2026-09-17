@@ -69,8 +69,8 @@
         },
         {
           "sample_id": "indian_01_tech",
-          "raw_text": "Please deploy the latest build on the Bangalore staging server and monitor the latency.",
-          "polished_text": "Please deploy the latest build on the Bangalore staging server and monitor the latency.",
+          "raw_text": "Please deploy the latest build on the cloud staging server and monitor the latency.",
+          "polished_text": "Please deploy the latest build on the cloud staging server and monitor the latency.",
           "latency_ms": 13333.88,
           "rtf": 0.0,
           "audio_duration_s": 0.0,
@@ -135,7 +135,7 @@
     {
       "sample_id": "clean_01_greeting",
       "category": "clean_english",
-      "audio_path": "/home/harshith/Work/omarchy-jarvis-hud/benchmarks/corpus/clean_01_greeting.mp3",
+      "audio_path": "benchmarks/corpus/clean_01_greeting.mp3",
       "reference_text": "Hello, this is a clean test of the offline voice transcription system.",
       "duration_s": 0.0,
       "engines": {
@@ -158,7 +158,7 @@
     {
       "sample_id": "dev_01_typescript",
       "category": "developer_terms",
-      "audio_path": "/home/harshith/Work/omarchy-jarvis-hud/benchmarks/corpus/dev_01_typescript.mp3",
+      "audio_path": "benchmarks/corpus/dev_01_typescript.mp3",
       "reference_text": "const result = await fetch(apiEndpoint, { headers: { Authorization: token } });",
       "duration_s": 0.0,
       "engines": {
@@ -181,7 +181,7 @@
     {
       "sample_id": "dev_02_python",
       "category": "developer_terms",
-      "audio_path": "/home/harshith/Work/omarchy-jarvis-hud/benchmarks/corpus/dev_02_python.mp3",
+      "audio_path": "benchmarks/corpus/dev_02_python.mp3",
       "reference_text": "def calculate_loss(predictions, targets): return torch.mean((predictions - targets) ** 2)",
       "duration_s": 0.0,
       "engines": {
@@ -204,8 +204,8 @@
     {
       "sample_id": "indian_01_tech",
       "category": "indian_english",
-      "audio_path": "/home/harshith/Work/omarchy-jarvis-hud/benchmarks/corpus/indian_01_tech.mp3",
-      "reference_text": "Please deploy the latest build on the Bangalore staging server and monitor the latency.",
+      "audio_path": "benchmarks/corpus/indian_01_tech.mp3",
+      "reference_text": "Please deploy the latest build on the cloud staging server and monitor the latency.",
       "duration_s": 0.0,
       "engines": {
         "turbo": {
@@ -213,8 +213,8 @@
         },
         "large-v3": {
           "sample_id": "indian_01_tech",
-          "raw_text": "Please deploy the latest build on the Bangalore staging server and monitor the latency.",
-          "polished_text": "Please deploy the latest build on the Bangalore staging server and monitor the latency.",
+          "raw_text": "Please deploy the latest build on the cloud staging server and monitor the latency.",
+          "polished_text": "Please deploy the latest build on the cloud staging server and monitor the latency.",
           "latency_ms": 13333.88,
           "rtf": 0.0,
           "audio_duration_s": 0.0,
@@ -227,7 +227,7 @@
     {
       "sample_id": "corr_01_backtrack",
       "category": "self_corrections",
-      "audio_path": "/home/harshith/Work/omarchy-jarvis-hud/benchmarks/corpus/corr_01_backtrack.mp3",
+      "audio_path": "benchmarks/corpus/corr_01_backtrack.mp3",
       "reference_text": "Schedule the deployment for Tuesday actually Wednesday morning.",
       "duration_s": 0.0,
       "engines": {
@@ -250,7 +250,7 @@
     {
       "sample_id": "dictation_01_long",
       "category": "long_dictation",
-      "audio_path": "/home/harshith/Work/omarchy-jarvis-hud/benchmarks/corpus/dictation_01_long.mp3",
+      "audio_path": "benchmarks/corpus/dictation_01_long.mp3",
       "reference_text": "The local voice dictation pipeline uses Silero Voice Activity Detection to segment incoming audio chunks and passes them to high performance Whisper models for low latency transcription.",
       "duration_s": 0.0,
       "engines": {

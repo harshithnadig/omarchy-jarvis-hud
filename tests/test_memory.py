@@ -16,9 +16,9 @@ def test_personal_dictionary_custom_entry(tmp_path):
     db_file = str(tmp_path / "dict.db")
     dictionary = PersonalDictionary(db_path=db_file)
 
-    dictionary.add_entry("harshu", "Harshith Nadig", app_scope="global")
-    text = "hello harshu welcome back"
-    assert dictionary.apply_dictionary(text) == "hello Harshith Nadig welcome back"
+    dictionary.add_entry("sysadmin", "System Administrator", app_scope="global")
+    text = "hello sysadmin welcome back"
+    assert dictionary.apply_dictionary(text) == "hello System Administrator welcome back"
 
 def test_snippet_expansion(tmp_path):
     snip_file = str(tmp_path / "snippets.json")

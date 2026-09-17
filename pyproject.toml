@@ -9,7 +9,7 @@ description = "High-performance offline-first voice dictation system & keyboard 
 readme = "README.md"
 requires-python = ">=3.9"
 authors = [
-    { name = "Harshith Nadig" }
+    { name = "JARVIS Project Contributors" }
 ]
 dependencies = [
     "numpy",

@@ -55,8 +55,8 @@
         },
         {
           "sample_id": "indian_01_tech",
-          "raw_text": "Please deploy the latest build on the Bangalore staging server and monitor the latency.",
-          "polished_text": "Please deploy the latest build on the Bangalore staging server and monitor the latency.",
+          "raw_text": "Please deploy the latest build on the cloud staging server and monitor the latency.",
+          "polished_text": "Please deploy the latest build on the cloud staging server and monitor the latency.",
           "latency_ms": 554.76,
           "rtf": 0.088,
           "audio_duration_s": 6.34,
@@ -156,8 +156,8 @@
         },
         {
           "sample_id": "indian_01_tech",
-          "raw_text": "Please deploy the latest build on the Bangalore staging server and monitor the latency.",
-          "polished_text": "Please deploy the latest build on the Bangalore staging server and monitor the latency.",
+          "raw_text": "Please deploy the latest build on the cloud staging server and monitor the latency.",
+          "polished_text": "Please deploy the latest build on the cloud staging server and monitor the latency.",
           "latency_ms": 779.97,
           "rtf": 0.123,
           "audio_duration_s": 6.34,

@@ -3,7 +3,7 @@
   "id": "harshith.jarvis-hud",
   "name": "JARVIS Tactical HUD",
   "version": "1.0.0",
-  "author": "Harshith Nadig",
+  "author": "JARVIS Project Contributors",
   "license": "MIT",
   "description": "Futuristic sci-fi tactical telemetry HUD: animated Arc Reactor core, real-time GPU/CPU matrix diagnostics, and one-click tactical power protocols.",
   "kinds": [
