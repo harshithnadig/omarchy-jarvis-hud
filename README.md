@@ -26,6 +26,12 @@ Use the Omarchy bar editor to place the widget if necessary. Installation fetche
 
 Reads hardware telemetry. Overdrive and Eco request power-profile changes on explicit clicks. Removal does not restore a previously selected power profile or remove separately installed voice services/models.
 
+Complex Mode B requests are held locally until a second voice response exactly
+confirms the request (`confirm`, `I confirm`, or an equivalent supported phrase).
+Only then is the original text passed to the local `agy` process. This gate is
+shared by the hotkey client, push-to-talk client, and always-listening daemon;
+the agent is never started with a permission-bypass flag.
+
 ### Current limitations
 
 The HUD has initial/fallback display values when telemetry is unavailable. Purge invokes sync; it does not drop kernel caches. Notifications do not verify whether power-profile changes succeeded. Historical voice benchmarks were not rerun for this submission.
@@ -86,7 +92,7 @@ JARVIS is built around two architecturally separated modes:
 
 ### 2. Mode B: JARVIS Assistant (Secondary)
 * **Goal:** Dedicated voice AI assistant for desktop system actions and agentic coding.
-* **Pipeline:** Voice Query → Fast-Path Local Actions (< 50ms for time/battery/volume/apps) or Antigravity Agent (`agy`) → Audio feedback via Neural Edge-TTS.
+* **Pipeline:** Voice Query → Fast-Path Local Actions (< 50ms for time/battery/volume/apps), or an explicit second confirmation before a complex request is sent to the local Antigravity Agent (`agy`) → Audio feedback via Neural Edge-TTS.
 
 ---
 
@@ -128,7 +134,7 @@ jarvis service [status|start|stop|restart]
 * **`core/context/`**: Active window tracking via Hyprland IPC ([`WindowContext`](core/context/active_window.py)), privacy engine ([`PrivacyEngine`](core/context/privacy.py)), and application style profiles ([`StyleProfile`](core/context/profiles.py)).
 * **`core/polish/`**: Deterministic text cleanup with backtrack self-correction ([`BacktrackingEngine`](core/polish/backtracking.py)), developer casing transforms ([`DeveloperTransformEngine`](core/polish/developer.py)), and optional local LLM post-processing ([`LocalLLMPolisher`](core/polish/llm.py)).
 * **`core/memory/`**: SQLite personal technical dictionary ([`PersonalDictionary`](core/memory/dictionary.py)) and voice snippet expansion ([`SnippetManager`](core/memory/snippets.py)).
-* **`core/assistant/`**: Mode B intent routing ([`AssistantRouter`](core/assistant/router.py)), local actions ([`LocalActionExecutor`](core/assistant/actions.py)), and Antigravity agent bridge ([`AntigravityConnector`](core/assistant/antigravity.py)).
+* **`core/assistant/`**: Mode B intent routing ([`AssistantRouter`](core/assistant/router.py)) with a separate confirmation gate, local actions ([`LocalActionExecutor`](core/assistant/actions.py)), and Antigravity agent bridge ([`AntigravityConnector`](core/assistant/antigravity.py)).
 * **`core/whisper_engine.py`**: High-performance GPU STT via `faster-whisper` with automatic CUDA dynamic linking and PyAV audio loading.
 * **`core/streaming.py`**: Streaming ASR session protocol and chunk-by-chunk partial transcription.
 * **`whisrs_sidecar.py`**: Local FastAPI daemon on `127.0.0.1:8765`.
@@ -156,4 +162,3 @@ pytest -v
 | **`whisper-large-v3`** | **31.7%** | **6.9%** | **50.0%** | **763.7 ms** | **988.1 ms** | **0.130x** *(7.7x real-time)* | **+3,744 MB** |
 
 See [`docs/MASTER_ROADMAP.md`](docs/MASTER_ROADMAP.md) for detailed architectural specifications.
-

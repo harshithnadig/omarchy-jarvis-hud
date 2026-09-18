@@ -2,7 +2,7 @@
 """
 JARVIS Assistant Client (Mode B — Voice AI Assistant)
 Triggered via separate hotkey (Super+J).
-Handles system controls, time/date/battery queries, and deep Antigravity agent execution.
+Handles system controls, time/date/battery queries, and confirmed Antigravity requests.
 """
 import os
 import sys
@@ -119,6 +119,19 @@ def main():
 
     # Route query
     response = AssistantRouter.process_query(query_text)
+
+    if response.executed_by == "confirmation_required":
+        print(f"JARVIS: {response.spoken_text}")
+        notify("JARVIS confirmation required", response.spoken_text)
+        speak(response.spoken_text)
+
+        confirmation_pcm = record_assistant_query(max_seconds=6.0)
+        confirmation_text = transcribe_audio(confirmation_pcm) if confirmation_pcm else ""
+        response = AssistantRouter.confirm_query(
+            response.pending_query or query_text,
+            confirmation_text,
+        )
+
     print(f"JARVIS ({response.executed_by}): {response.spoken_text}")
     notify("JARVIS", response.spoken_text[:120] + "...")
     speak(response.spoken_text)

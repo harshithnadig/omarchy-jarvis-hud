@@ -4,7 +4,11 @@ from typing import Optional
 
 class AntigravityConnector:
     """
-    Interfaces with the local Antigravity CLI (agy) for desktop AI reasoning and system execution.
+    Interfaces with the local Antigravity CLI (agy) for desktop AI reasoning.
+
+    The router's separate confirmation gate is the enforceable permission
+    boundary. The prompt below is defense in depth and must not be treated as
+    a replacement for that gate.
     """
     @classmethod
     def is_available(cls) -> bool:
@@ -32,7 +36,12 @@ class AntigravityConnector:
             output = res.stdout.strip()
             if output:
                 return output
-            return "Task executed successfully."
+            if res.returncode != 0:
+                error = res.stderr.strip()
+                if error:
+                    return f"Antigravity failed: {error[:240]}"
+                return "Antigravity declined the request."
+            return "Antigravity returned no response."
         except subprocess.TimeoutExpired:
             return "Antigravity agent query timed out."
         except Exception as e:

@@ -24,6 +24,7 @@ import sounddevice as sd
 import numpy as np
 from faster_whisper.vad import get_vad_model
 import edge_tts
+from core.assistant.router import AssistantRouter
 
 print("🚀 Starting Always-Listening Omni Jarvis Voice OS...", flush=True)
 
@@ -38,6 +39,7 @@ print("✅ Silero Neural VAD is live and calibrated!", flush=True)
 # State
 is_processing = False
 is_speaking = False
+pending_agent_query = None
 
 audio_buffer = collections.deque(maxlen=int(SAMPLE_RATE * 15 / CHUNK_SIZE))
 pre_roll = collections.deque(maxlen=int(SAMPLE_RATE * 0.4 / CHUNK_SIZE))
@@ -212,7 +214,7 @@ def handle_quick_actions(query):
     return None
 
 def process_voice_utterance(pcm_data):
-    global is_processing
+    global is_processing, pending_agent_query
     try:
         raw_text = transcribe_audio(pcm_data)
         if not raw_text or len(raw_text.strip()) < 2:
@@ -225,31 +227,16 @@ def process_voice_utterance(pcm_data):
         clean_text = raw_text.strip(" ,:.-?!")
         print(f"🗣️ [User Spoke]: '{clean_text}'", flush=True)
 
-        # 1. Instant Fast-Path (0ms - 300ms)
-        quick_resp = handle_quick_actions(clean_text)
-        if quick_resp:
-            print(f"🤖 Jarvis: {quick_resp}", flush=True)
-            speak_in_process(quick_resp)
-            return
+        if pending_agent_query is not None:
+            response = AssistantRouter.confirm_query(pending_agent_query, clean_text)
+            pending_agent_query = None
+        else:
+            response = AssistantRouter.process_query(clean_text)
+            if response.executed_by == "confirmation_required":
+                pending_agent_query = response.pending_query
 
-        # 2. Antigravity Agent Query
-        print(f"⚡ [Antigravity Agent]: Processing in Omarchy...", flush=True)
-        agent_prompt = (
-            f"You are Jarvis, a voice-interactive desktop AI assistant on Omarchy Linux. "
-            f"Execute the following user request and provide a concise, spoken-friendly answer (1-3 sentences max):\n\n{clean_text}"
-        )
-        result = subprocess.run(
-            ["agy", "--dangerously-skip-permissions", "-p", agent_prompt],
-            capture_output=True,
-            text=True,
-            timeout=120
-        )
-        response = result.stdout.strip()
-        if not response:
-            response = "Task executed successfully."
-
-        print(f"🤖 Jarvis: {response}", flush=True)
-        speak_in_process(response)
+        print(f"🤖 Jarvis ({response.executed_by}): {response.spoken_text}", flush=True)
+        speak_in_process(response.spoken_text)
 
     except Exception as e:
         print(f"⚠️ Error: {e}", flush=True)

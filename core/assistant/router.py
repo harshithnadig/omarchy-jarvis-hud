@@ -1,5 +1,6 @@
 from dataclasses import dataclass
-from typing import Optional, Tuple
+import re
+from typing import Optional
 from .actions import LocalActionExecutor, PermissionClass
 from .antigravity import AntigravityConnector
 
@@ -7,14 +8,28 @@ from .antigravity import AntigravityConnector
 class AssistantResponse:
     spoken_text: str
     permission_class: PermissionClass
-    executed_by: str  # "fast_path" or "antigravity"
+    executed_by: str  # "fast_path", "confirmation_required", or "antigravity"
+    pending_query: Optional[str] = None
 
 class AssistantRouter:
     """
     Routes user voice commands in Mode B (Assistant Mode).
     1. Evaluates fast-path commands (< 50ms).
-    2. Falls back to Antigravity CLI agent for complex queries.
+    2. Requires a separate explicit confirmation before the Antigravity CLI
+       can receive a complex query.
     """
+
+    _CONFIRMATION_PHRASES = {
+        "confirm",
+        "confirm it",
+        "confirm request",
+        "i confirm",
+        "i confirm it",
+        "yes confirm",
+        "yes i confirm",
+        "approve",
+        "approve request",
+    }
 
     @classmethod
     def process_query(cls, query: str) -> AssistantResponse:
@@ -35,10 +50,38 @@ class AssistantRouter:
                 executed_by="fast_path"
             )
 
-        # 2. Forward to Antigravity agent
+        # 2. Do not forward arbitrary speech/transcription to an agent. The
+        # caller must collect a second, explicit confirmation and then call
+        # confirm_query(). Keeping the pending text in the response makes the
+        # boundary visible and prevents a boolean flag from being accidentally
+        # threaded through a future caller.
+        return AssistantResponse(
+            spoken_text=(
+                "That request may change your system. Say 'confirm' in a "
+                "separate response if you want me to send it to Antigravity."
+            ),
+            permission_class=PermissionClass.SENSITIVE,
+            executed_by="confirmation_required",
+            pending_query=query.strip(),
+        )
+
+    @classmethod
+    def confirm_query(cls, pending_query: str, confirmation: str) -> AssistantResponse:
+        """Forward a pending query only after an exact confirmation phrase."""
+        query = (pending_query or "").strip()
+        normalized = re.sub(r"[^a-z0-9\s]", " ", (confirmation or "").lower())
+        normalized = re.sub(r"\s+", " ", normalized).strip()
+
+        if not query or normalized not in cls._CONFIRMATION_PHRASES:
+            return AssistantResponse(
+                spoken_text="Cancelled. No agent action was sent.",
+                permission_class=PermissionClass.SAFE,
+                executed_by="confirmation_denied",
+            )
+
         agent_reply = AntigravityConnector.query(query)
         return AssistantResponse(
             spoken_text=agent_reply,
             permission_class=PermissionClass.SENSITIVE,
-            executed_by="antigravity"
+            executed_by="antigravity",
         )

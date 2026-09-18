@@ -15,14 +15,50 @@ import json
 import urllib.request
 import urllib.parse
 import subprocess
+import fcntl
 import sounddevice as sd
 import numpy as np
 from faster_whisper.vad import get_vad_model
 import edge_tts
 import asyncio
+from core.assistant.router import AssistantRouter
 
 SAMPLE_RATE = 16000
 CHUNK_SIZE = 512
+
+
+def acquire_instance_lock():
+    """Acquire a private, non-following lock for the push-to-talk client."""
+    runtime_dir = os.environ.get("XDG_RUNTIME_DIR")
+    if not runtime_dir:
+        state_home = os.environ.get(
+            "XDG_STATE_HOME", os.path.expanduser("~/.local/state")
+        )
+        runtime_dir = os.path.join(state_home, "omarchy-jarvis")
+
+    lock_fd = None
+    try:
+        os.makedirs(runtime_dir, mode=0o700, exist_ok=True)
+        if os.path.islink(runtime_dir) or not os.path.isdir(runtime_dir):
+            return None
+        os.chmod(runtime_dir, 0o700)
+
+        lock_path = os.path.join(runtime_dir, "jarvis-ptt.lock")
+        lock_fd = os.open(
+            lock_path,
+            os.O_RDWR | os.O_CREAT | os.O_NOFOLLOW,
+            0o600,
+        )
+        if os.fstat(lock_fd).st_uid != os.getuid():
+            os.close(lock_fd)
+            return None
+        os.fchmod(lock_fd, 0o600)
+        fcntl.flock(lock_fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        return lock_fd
+    except (OSError, ValueError):
+        if lock_fd is not None:
+            os.close(lock_fd)
+        return None
 
 def play_chime():
     subprocess.Popen(["pw-play", "/usr/share/sounds/freedesktop/stereo/service-login.oga"], stderr=subprocess.DEVNULL)
@@ -159,13 +195,13 @@ def handle_quick_actions(query):
 
     return None
 
-def record_voice_command():
+def record_voice_command(max_seconds=12.0):
     vad_model = get_vad_model()
     audio_frames = []
     speech_started = False
     silence_count = 0
     speech_count = 0
-    max_frames = int(12 * SAMPLE_RATE / CHUNK_SIZE) # 12s max
+    max_frames = int(max_seconds * SAMPLE_RATE / CHUNK_SIZE)
 
     play_chime()
     notify("Jarvis", "Listening...")
@@ -193,20 +229,10 @@ def record_voice_command():
     return b"".join(audio_frames)
 
 def main():
-    # If already running, prevent overlapping instance
-    pid_file = "/tmp/jarvis_ptt.pid"
-    if os.path.exists(pid_file):
-        try:
-            with open(pid_file) as f:
-                old_pid = int(f.read().strip())
-            os.kill(old_pid, 0)
-            print("Jarvis PTT already active.")
-            sys.exit(0)
-        except Exception:
-            pass
-
-    with open(pid_file, "w") as f:
-        f.write(str(os.getpid()))
+    lock_fd = acquire_instance_lock()
+    if lock_fd is None:
+        print("Jarvis PTT already active or its lock is unavailable.")
+        sys.exit(0)
 
     try:
         pcm_data = record_voice_command()
@@ -223,37 +249,27 @@ def main():
         print(f"User: {text}")
         notify("You Said", text)
 
-        # 1. Quick Fast Path (< 300ms)
-        quick_resp = handle_quick_actions(text)
-        if quick_resp:
-            print(f"Jarvis: {quick_resp}")
-            notify("Jarvis", quick_resp)
-            speak(quick_resp)
-            sys.exit(0)
+        response = AssistantRouter.process_query(text)
 
-        # 2. Antigravity Agent Query
-        notify("Jarvis", "Thinking...")
-        agent_prompt = (
-            f"You are Jarvis, a voice AI assistant on Omarchy Linux. "
-            f"Execute the user request and give a concise spoken response (1-3 sentences max):\n\n{text}"
-        )
-        result = subprocess.run(
-            ["agy", "--dangerously-skip-permissions", "-p", agent_prompt],
-            capture_output=True,
-            text=True,
-            timeout=120
-        )
-        response = result.stdout.strip()
-        if not response:
-            response = "Task executed successfully."
+        if response.executed_by == "confirmation_required":
+            print(f"Jarvis: {response.spoken_text}")
+            notify("Jarvis confirmation required", response.spoken_text)
+            speak(response.spoken_text)
 
-        print(f"Jarvis: {response}")
-        notify("Jarvis", response[:120] + "...")
-        speak(response)
+            confirmation_pcm = record_voice_command(max_seconds=6.0)
+            confirmation_text = transcribe_audio(confirmation_pcm) if confirmation_pcm else ""
+            response = AssistantRouter.confirm_query(
+                response.pending_query or text,
+                confirmation_text,
+            )
+
+        print(f"Jarvis ({response.executed_by}): {response.spoken_text}")
+        notify("Jarvis", response.spoken_text[:120] + "...")
+        speak(response.spoken_text)
 
     finally:
-        if os.path.exists(pid_file):
-            os.remove(pid_file)
+        fcntl.flock(lock_fd, fcntl.LOCK_UN)
+        os.close(lock_fd)
 
 if __name__ == "__main__":
     main()
