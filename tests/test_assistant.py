@@ -65,6 +65,14 @@ def test_voice_entrypoints_cannot_bypass_confirmation_gate():
         assert "AssistantRouter.confirm_query" in source
 
 
+def test_antigravity_keeps_independent_cli_permission_boundary():
+    with open("core/assistant/antigravity.py", encoding="utf-8") as handle:
+        source = handle.read()
+    assert "dangerously-skip-permissions" not in source
+    assert "start_new_session=True" in source
+    assert "MAX_AGENT_OUTPUT_BYTES" in source
+
+
 def test_push_to_talk_uses_a_private_non_following_lock():
     with open("jarvis-ptt", encoding="utf-8") as handle:
         source = handle.read()
