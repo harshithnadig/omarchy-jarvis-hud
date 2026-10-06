@@ -3,7 +3,7 @@ import shutil
 import urllib.request
 import json
 import sounddevice as sd
-from typing import Dict, List, Tuple
+from typing import Any, Dict, List, Tuple
 
 from core.gpu_utils import get_gpu_info
 from core.context.active_window import get_active_window
