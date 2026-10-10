@@ -28,9 +28,12 @@ Reads hardware telemetry. Overdrive and Eco request power-profile changes on exp
 
 Complex Mode B requests are held locally until a second voice response exactly
 confirms the request (`confirm`, `I confirm`, or an equivalent supported phrase).
-Only then is the original text passed to the local `agy` process. This gate is
-shared by the hotkey client, push-to-talk client, and always-listening daemon;
-the agent is never started with a permission-bypass flag.
+That voice phrase is only a routing gate: nearby audio must not be treated as
+the final authorization for a dangerous action. Only then is the original text
+passed to the local `agy` process, which is deliberately started without a
+permission-bypass flag so Antigravity's own local permission prompt remains an
+independent authorization boundary. This flow is shared by the hotkey client,
+push-to-talk client, and always-listening daemon.
 
 ### Current limitations
 
